@@ -23,12 +23,12 @@ $passwordNueva = trim($data['password_nueva'] ?? '');
 
 if ($passwordActual === '' || $passwordNueva === '') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Ingrese la contrasena actual y la nueva']);
+    echo json_encode(['success' => false, 'message' => 'Ingrese la contraseña actual y la nueva']);
     exit;
 }
 if (strlen($passwordNueva) < 6) {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'La contrasena nueva debe tener al menos 6 caracteres']);
+    echo json_encode(['success' => false, 'message' => 'La contraseña nueva debe tener al menos 6 caracteres']);
     exit;
 }
 
@@ -57,7 +57,7 @@ try {
 
     if (!password_verify($passwordActual, $admin['password_hash'])) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'La contrasena actual no es correcta']);
+        echo json_encode(['success' => false, 'message' => 'La contraseña actual no es correcta']);
         $db->close();
         exit;
     }
@@ -67,7 +67,7 @@ try {
     $stmtUpd->bindValue(':id', $userId, SQLITE3_INTEGER);
     $stmtUpd->execute();
 
-    echo json_encode(['success' => true, 'message' => 'Contrasena del administrador actualizada']);
+    echo json_encode(['success' => true, 'message' => 'Contraseña del administrador actualizada']);
 
     $db->close();
 } catch (Exception $e) {

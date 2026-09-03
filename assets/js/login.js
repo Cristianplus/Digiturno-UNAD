@@ -73,7 +73,7 @@ async function enviarLogin() {
     const password = document.getElementById('login-password').value;
 
     if (!usuario || !password) {
-        mostrarErrorLogin('Ingrese usuario y contrasena');
+        mostrarErrorLogin('Ingrese usuario y contraseña');
         return;
     }
 

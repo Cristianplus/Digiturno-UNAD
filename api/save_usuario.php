@@ -112,13 +112,13 @@ try {
         // NUEVO
         if ($password === '') {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'La contrasena es obligatoria para un funcionario nuevo']);
+            echo json_encode(['success' => false, 'message' => 'La contraseña es obligatoria para un funcionario nuevo']);
             $db->close();
             exit;
         }
         if (strlen($password) < 6) {
             http_response_code(400);
-            echo json_encode(['success' => false, 'message' => 'La contrasena debe tener al menos 6 caracteres']);
+            echo json_encode(['success' => false, 'message' => 'La contraseña debe tener al menos 6 caracteres']);
             $db->close();
             exit;
         }

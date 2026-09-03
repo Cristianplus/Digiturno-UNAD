@@ -60,27 +60,27 @@ $esAdmin = true;
             <!-- Contraseña del administrador -->
             <div class="card">
                 <div class="card-header">
-                    <h2>Contrasena del Administrador</h2>
+                    <h2>Contraseña del Administrador</h2>
                 </div>
                 <div class="card-body">
                     <p style="font-size:0.85rem; color:var(--unad-text-light); margin-bottom:16px;">
-                        Cambie la contrasena del administrador del sistema. Se recomienda cambiar la
-                        contrasena por defecto al primer ingreso.
+                        Cambie la contraseña del administrador del sistema. Se recomienda cambiar la
+                        contraseña por defecto al primer ingreso.
                     </p>
                     <div id="alert-admin"></div>
                     <div class="form-group">
-                        <label>Contrasena actual</label>
+                        <label>Contraseña actual</label>
                         <input type="password" class="form-control" id="adm-pass-actual" autocomplete="current-password">
                     </div>
                     <div class="form-group">
-                        <label>Nueva contrasena</label>
+                        <label>Nueva contraseña</label>
                         <input type="password" class="form-control" id="adm-pass-nueva" autocomplete="new-password">
                     </div>
                     <div class="form-group">
-                        <label>Confirmar nueva contrasena</label>
+                        <label>Confirmar nueva contraseña</label>
                         <input type="password" class="form-control" id="adm-pass-confirm" autocomplete="new-password">
                     </div>
-                    <button class="btn btn-primary btn-block" onclick="cambiarPasswordAdmin()">Cambiar Contrasena</button>
+                    <button class="btn btn-primary btn-block" onclick="cambiarPasswordAdmin()">Cambiar Contraseña</button>
                 </div>
             </div>
 
@@ -105,8 +105,8 @@ $esAdmin = true;
                     <input type="text" class="form-control" id="usr-usuario" placeholder="Ej: luis.garcia" maxlength="50" autocomplete="off" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label id="usr-pass-label">Contrasena <span class="required">*</span></label>
-                    <input type="password" class="form-control" id="usr-password" placeholder="Contrasena del funcionario" autocomplete="new-password">
+                    <label id="usr-pass-label">Contraseña <span class="required">*</span></label>
+                    <input type="password" class="form-control" id="usr-password" placeholder="Contraseña del funcionario" autocomplete="new-password">
                 </div>
                 <div class="form-group">
                     <label>Dependencia Asignada <span class="required">*</span></label>

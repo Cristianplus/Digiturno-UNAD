@@ -76,11 +76,11 @@ if ($rolActivo) {
                     <input type="text" class="form-control" id="login-usuario" placeholder="Ingrese su usuario" autocomplete="username" spellcheck="false">
                 </div>
                 <div class="form-group">
-                    <label for="login-password">Contrasena</label>
-                    <input type="password" class="form-control" id="login-password" placeholder="Ingrese su contrasena" autocomplete="current-password">
+                    <label for="login-password">Contraseña</label>
+                    <input type="password" class="form-control" id="login-password" placeholder="Ingrese su contraseña" autocomplete="current-password">
                 </div>
                 <p class="login-forgot">
-                    <a href="#" id="link-olvide" onclick="mostrarOlvido(); return false;">Olvidaste tu contrasena?</a>
+                    <a href="#" id="link-olvide" onclick="mostrarOlvido(); return false;">Olvidaste tu contraseña?</a>
                 </p>
             </div>
             <div class="modal-footer">
@@ -94,7 +94,7 @@ if ($rolActivo) {
     <div class="modal-overlay" id="modal-olvido">
         <div class="modal">
             <div class="modal-header">
-                <h3>Olvidaste tu contrasena?</h3>
+                <h3>Olvidaste tu contraseña?</h3>
                 <button class="modal-close" onclick="cerrarOlvido()">&times;</button>
             </div>
             <div class="modal-body">
@@ -103,7 +103,7 @@ if ($rolActivo) {
                     No existe registro por cuenta propia.
                 </p>
                 <p style="margin-top:10px;">
-                    Para restablecer su contrasena, solicitelo de manera <strong>presencial en el CEAD</strong>.
+                    Para restablecer su contraseña, solicitelo de manera <strong>presencial en el CEAD</strong>.
                     El administrador se la restablecera.
                 </p>
             </div>

@@ -143,7 +143,7 @@ function abrirModalNuevo() {
     document.getElementById('usr-usuario').value = '';
     document.getElementById('usr-password').value = '';
     document.getElementById('usr-password').removeAttribute('required');
-    document.getElementById('usr-pass-label').innerHTML = 'Contrasena <span class="required">*</span>';
+    document.getElementById('usr-pass-label').innerHTML = 'Contraseña <span class="required">*</span>';
     document.getElementById('usr-dependencia').value = '';
     document.getElementById('usr-activo').checked = true;
     document.getElementById('usr-activo-grupo').classList.add('hidden');
@@ -169,7 +169,7 @@ function abrirModalEditar(id) {
         document.getElementById('usr-nombre').value = u.nombre;
         document.getElementById('usr-usuario').value = u.usuario;
         document.getElementById('usr-password').value = '';
-        document.getElementById('usr-pass-label').innerHTML = 'Nueva contrasena (opcional)';
+        document.getElementById('usr-pass-label').innerHTML = 'Nueva contraseña (opcional)';
         document.getElementById('usr-password').placeholder = 'Deje vacio para mantener la actual';
         document.getElementById('usr-dependencia').value = u.dependencia_id || '';
         document.getElementById('usr-activo').checked = parseInt(u.activo) === 1;
@@ -192,11 +192,11 @@ async function guardarUsuario() {
         return;
     }
     if (!usuarioEditandoId && !password) {
-        mostrarErrorModal('La contrasena es obligatoria para un funcionario nuevo');
+        mostrarErrorModal('La contraseña es obligatoria para un funcionario nuevo');
         return;
     }
     if (password && password.length < 6) {
-        mostrarErrorModal('La contrasena debe tener al menos 6 caracteres');
+        mostrarErrorModal('La contraseña debe tener al menos 6 caracteres');
         return;
     }
 
@@ -266,11 +266,11 @@ async function cambiarPasswordAdmin() {
         return;
     }
     if (nueva !== confirm) {
-        mostrarAlertaAdmin('La contrasena nueva no coincide con la confirmacion', 'error');
+        mostrarAlertaAdmin('La contraseña nueva no coincide con la confirmacion', 'error');
         return;
     }
     if (nueva.length < 6) {
-        mostrarAlertaAdmin('La contrasena nueva debe tener al menos 6 caracteres', 'error');
+        mostrarAlertaAdmin('La contraseña nueva debe tener al menos 6 caracteres', 'error');
         return;
     }
 
@@ -286,7 +286,7 @@ async function cambiarPasswordAdmin() {
             document.getElementById('adm-pass-nueva').value = '';
             document.getElementById('adm-pass-confirm').value = '';
         } else {
-            mostrarAlertaAdmin(res.data?.message || 'No se pudo cambiar la contrasena', 'error');
+            mostrarAlertaAdmin(res.data?.message || 'No se pudo cambiar la contraseña', 'error');
         }
     } catch (error) {
         mostrarAlertaAdmin('Error de conexion', 'error');

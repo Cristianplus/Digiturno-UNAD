@@ -45,7 +45,7 @@ $password = (string)($data['password'] ?? '');
 
 if ($usuario === '' || $password === '') {
     http_response_code(400);
-    echo json_encode(['success' => false, 'message' => 'Ingrese usuario y contrasena']);
+    echo json_encode(['success' => false, 'message' => 'Ingrese usuario y contraseña']);
     exit;
 }
 
@@ -79,7 +79,7 @@ try {
 
     if (!password_verify($password, $user['password_hash'])) {
         http_response_code(401);
-        echo json_encode(['success' => false, 'message' => 'Contrasena incorrecta']);
+        echo json_encode(['success' => false, 'message' => 'Contraseña incorrecta']);
         $db->close();
         exit;
     }
