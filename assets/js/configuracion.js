@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Auto-generacion de usuario: recalcular cuando cambian nombre/apellido
     document.getElementById('usr-nombre').addEventListener('input', actualizarVistaPreviaUsuario);
     document.getElementById('usr-apellido').addEventListener('input', actualizarVistaPreviaUsuario);
+
+    // Aviso de Bloq Mayus en los campos de contraseña
+    configurarCapsLock();
 });
 
 // Regenera la vista previa del usuario (nombre+apellido+id) en minusculas.
@@ -60,6 +63,23 @@ function togglePassVisibility(boton) {
     if (botonOjo) botonOjo.style.display = esOculto ? 'none' : '';
     if (botonOjoTachado) botonOjoTachado.style.display = esOculto ? '' : 'none';
     input.focus();
+}
+
+// Muestra el aviso de "Bloq Mayus activado" bajo cada campo de contraseña
+// que tenga el atributo data-caps-indicator.
+function configurarCapsLock() {
+    document.querySelectorAll('[data-caps-indicator]').forEach(campo => {
+        const indicador = document.getElementById(campo.getAttribute('data-caps-indicator'));
+        if (!indicador) return;
+        const actualizar = (e) => {
+            indicador.style.display =
+                e.getModifierState && e.getModifierState('CapsLock') ? '' : 'none';
+        };
+        campo.addEventListener('keydown', actualizar);
+        campo.addEventListener('keyup', actualizar);
+        campo.addEventListener('blur', () => indicador.style.display = 'none');
+        campo.addEventListener('focus', () => indicador.style.display = 'none');
+    });
 }
 
 // fetch con timeout y parseo tolerante de JSON

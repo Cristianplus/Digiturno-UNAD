@@ -27,7 +27,42 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('login-usuario').addEventListener('keydown', (e) => {
         if (e.key === 'Enter') enviarLogin();
     });
+
+    configurarCapsLock();
 });
+
+// Alterna la visibilidad de una contraseña usando el id del campo que
+// referencia el boton a traves del atributo data-pass-toggle.
+function togglePassVisibility(boton) {
+    if (!boton) return;
+    const idCampo = boton.getAttribute('data-pass-toggle');
+    const input = document.getElementById(idCampo);
+    if (!input) return;
+    const botonOjo = boton.querySelector('.pass-eyes-eye');
+    const botonOjoTachado = boton.querySelector('.pass-eyes-eye-off');
+    const esOculto = input.type === 'password';
+    input.type = esOculto ? 'text' : 'password';
+    if (botonOjo) botonOjo.style.display = esOculto ? 'none' : '';
+    if (botonOjoTachado) botonOjoTachado.style.display = esOculto ? '' : 'none';
+    input.focus();
+}
+
+// Muestra el aviso de "Bloq Mayus activado" bajo cada campo de contraseña
+// que tenga el atributo data-caps-indicator.
+function configurarCapsLock() {
+    document.querySelectorAll('[data-caps-indicator]').forEach(campo => {
+        const indicador = document.getElementById(campo.getAttribute('data-caps-indicator'));
+        if (!indicador) return;
+        const actualizar = (e) => {
+            indicador.style.display =
+                e.getModifierState && e.getModifierState('CapsLock') ? '' : 'none';
+        };
+        campo.addEventListener('keydown', actualizar);
+        campo.addEventListener('keyup', actualizar);
+        campo.addEventListener('blur', () => indicador.style.display = 'none');
+        campo.addEventListener('focus', () => indicador.style.display = 'none');
+    });
+}
 
 // Seleccion de perfil
 async function seleccionarPerfil(perfil) {

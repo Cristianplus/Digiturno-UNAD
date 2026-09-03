@@ -260,6 +260,26 @@ body.display-screen {
     box-shadow: 0 0 0 3px rgba(0, 116, 217, 0.15);
 }
 
+/* Fila de aviso bajo el campo de contraseña (reserva espacio fijo).
+   El texto de Bloq Mayus aparece en rojo sin cambiar el tamano del form-group. */
+.caps-lock-slot {
+    min-height: 1.25rem;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+}
+
+.caps-lock-slot .caps-lock-text {
+    color: #dc2626;
+    font-weight: 500;
+}
+
+.caps-lock-slot small {
+    color: var(--unad-text-light);
+}
+
 select.form-control {
     cursor: pointer;
     appearance: none;
@@ -1355,10 +1375,20 @@ table tbody tr:nth-child(even):hover {
 
 .login-forgot {
     margin-top: 4px;
-    text-align: right;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Texto de aviso de Bloq Mayus (rojo, sin caja) junto a "Olvidaste tu contraseña?" */
+.login-forgot .caps-lock-aviso {
+    color: #dc2626;
+    font-size: 0.82rem;
+    font-weight: 500;
 }
 
 .login-forgot a {
+    margin-left: auto;
     color: var(--unad-blue-light);
     text-decoration: none;
     font-size: 0.88rem;
