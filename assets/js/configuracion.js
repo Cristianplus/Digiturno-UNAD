@@ -138,9 +138,11 @@ async function cargarUsuarios() {
             const nombre = $escapeHtml(
                 (u.nombre || '') + ((u.apellido || '').trim() ? ' ' + u.apellido : '')
             );
-            const dep = u.dependencia_codigo
+            const dep = (u.dependencia_codigo
                 ? `${u.dependencia_codigo} - ${u.dependencia_nombre}`
-                : '-';
+                : '-') + (u.lista_codigo
+                    ? ` <small style="color:var(--unad-text-light)">(${u.lista_codigo})</small>`
+                    : '');
             const estado = parseInt(u.activo) === 1
                 ? '<span class="user-estado activo">Activo</span>'
                 : '<span class="user-estado inactivo">Inactivo</span>';
@@ -184,10 +186,66 @@ async function cargarDependencias() {
             const opt = document.createElement('option');
             opt.value = dep.id;
             opt.textContent = `${dep.codigo} - ${dep.nombre}`;
+            opt.dataset.usaListas = dep.usaListas;
+            opt.dataset.codigo = dep.codigo;
             select.appendChild(opt);
         });
+
+        select.addEventListener('change', onCambioDependenciaFuncionario);
     } catch (error) {
         console.error('Error cargando dependencias:', error);
+    }
+}
+
+// Mostrar/esconder la lista de escuelas segun la dependencia seleccionada (ESC/usaListas)
+async function onCambioDependenciaFuncionario() {
+    await cargarEscuelasFuncionario(null, false);
+}
+
+// Carga y muestra las escuelas segun la dependencia actual.
+// listaSeleccionada: id de escuela a preseleccionar (o null).
+async function cargarEscuelasFuncionario(listaSeleccionada, preseleccion = true) {
+    const select = document.getElementById('usr-dependencia');
+    const grupoEscuela = document.getElementById('grupo-escuela-funcionario');
+    const selectEscuela = document.getElementById('usr-lista');
+    const opt = select.options[select.selectedIndex];
+
+    selectEscuela.innerHTML = '<option value="">Seleccione la escuela...</option>';
+
+    if (opt && opt.dataset.usaListas === '1') {
+        grupoEscuela.classList.remove('hidden');
+        try {
+            const res = await fetchJSON(`${API_BASE}/get_lists.php?dependencia_id=${opt.value}`);
+            if (res && res.data && res.data.success) {
+                res.data.listas.forEach(l => {
+                    const op = document.createElement('option');
+                    op.value = l.id;
+                    op.textContent = `${l.codigo} - ${l.nombre}`;
+                    selectEscuela.appendChild(op);
+                });
+                if (preseleccion && listaSeleccionada) {
+                    selectEscuela.value = String(listaSeleccionada);
+                }
+            }
+        } catch (error) {
+            console.error('Error cargando escuelas:', error);
+        }
+    } else {
+        grupoEscuela.classList.add('hidden');
+        selectEscuela.value = '';
+    }
+}
+
+// Al editar: si el usuario pertenece a una dependencia con listas (ESC),
+// carga las escuelas y preselecciona la guardada.
+async function configurarEscuelaFuncionario(u) {
+    const select = document.getElementById('usr-dependencia');
+    const opt = select.options[select.selectedIndex];
+    if (opt && opt.dataset.usaListas === '1') {
+        await cargarEscuelasFuncionario(u.lista_id, true);
+    } else {
+        document.getElementById('grupo-escuela-funcionario').classList.add('hidden');
+        document.getElementById('usr-lista').innerHTML = '<option value="">Seleccione la escuela...</option>';
     }
 }
 
@@ -202,6 +260,8 @@ function abrirModalNuevo() {
     document.getElementById('usr-password').removeAttribute('required');
     document.getElementById('usr-pass-label').innerHTML = 'Contraseña <span class="required">*</span>';
     document.getElementById('usr-dependencia').value = '';
+    document.getElementById('usr-lista').innerHTML = '<option value="">Seleccione la escuela...</option>';
+    document.getElementById('grupo-escuela-funcionario').classList.add('hidden');
     document.getElementById('usr-activo').checked = true;
     document.getElementById('usr-activo-grupo').classList.add('hidden');
     limpiarErrorModal();
@@ -244,6 +304,7 @@ function abrirModalEditar(id) {
         document.getElementById('usr-pass-label').innerHTML = 'Nueva contraseña (opcional)';
         document.getElementById('usr-password').placeholder = 'Deje vacio para mantener la actual';
         document.getElementById('usr-dependencia').value = u.dependencia_id || '';
+        configurarEscuelaFuncionario(u);
         document.getElementById('usr-activo').checked = parseInt(u.activo) === 1;
         document.getElementById('usr-activo-grupo').classList.remove('hidden');
         limpiarErrorModal();
@@ -258,10 +319,17 @@ async function guardarUsuario() {
     const usuario = document.getElementById('usr-usuario').value.trim();
     const password = document.getElementById('usr-password').value;
     const dependencia_id = document.getElementById('usr-dependencia').value;
+    const lista_id = document.getElementById('usr-lista').value || null;
     const activo = document.getElementById('usr-activo').checked ? 1 : 0;
 
     if (!nombre || !apellido || !usuario || !dependencia_id) {
         mostrarErrorModal('Nombre, apellido, usuario y dependencia son obligatorios');
+        return;
+    }
+    // Si la dependencia usa escuelas, la escuela es obligatoria
+    const optDep = document.getElementById('usr-dependencia').options[document.getElementById('usr-dependencia').selectedIndex];
+    if (optDep && optDep.dataset.usaListas === '1' && !lista_id) {
+        mostrarErrorModal('Debe seleccionar la escuela para esta dependencia');
         return;
     }
     if (!usuarioEditandoId && !password) {
@@ -284,6 +352,7 @@ async function guardarUsuario() {
         usuario,
         password,
         dependencia_id,
+        lista_id,
         activo
     };
 

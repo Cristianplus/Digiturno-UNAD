@@ -163,6 +163,11 @@ function initDB() {
             $db->exec("ALTER TABLE usuarios ADD COLUMN apellido TEXT DEFAULT ''");
         }
 
+        // 1e. Agregar columna lista_id a usuarios si no existe (escuela para funcionarios de ESC)
+        if (tablaExiste($db, 'usuarios') && !columnaExiste($db, 'usuarios', 'lista_id')) {
+            $db->exec("ALTER TABLE usuarios ADD COLUMN lista_id INTEGER REFERENCES listas(id)");
+        }
+
         // =====================================================================
         // PASO 2: Ejecutar schema (CREATE IF NOT EXISTS + datos iniciales)
         // =====================================================================
@@ -289,6 +294,9 @@ function ensureStructure() {
         }
         if (tablaExiste($db, 'usuarios') && !columnaExiste($db, 'usuarios', 'apellido')) {
             $needsMigracion = true; // separacion nombre/apellido
+        }
+        if (tablaExiste($db, 'usuarios') && !columnaExiste($db, 'usuarios', 'lista_id')) {
+            $needsMigracion = true; // escuela para funcionarios de ESC
         }
 
         if ($needsMigracion) {

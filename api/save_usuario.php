@@ -53,6 +53,7 @@ try {
     $usuario = trim($data['usuario'] ?? '');
     $password = trim($data['password'] ?? '');
     $dependencia_id = isset($data['dependencia_id']) ? intval($data['dependencia_id']) : 0;
+    $lista_id = isset($data['lista_id']) && $data['lista_id'] !== '' ? intval($data['lista_id']) : null;
     $activo = isset($data['activo']) ? (intval($data['activo']) === 1 ? 1 : 0) : 1;
 
     if ($nombre === '' || $dependencia_id <= 0) {
@@ -69,6 +70,27 @@ try {
         echo json_encode(['success' => false, 'message' => 'Dependencia no valida']);
         $db->close();
         exit;
+    }
+
+    // Si la dependencia requiere lista secundaria (ej. ESC => escuelas), la lista es obligatoria
+    $depUsaListas = intval($db->querySingle("SELECT usaListas FROM dependencias WHERE id = $dependencia_id"));
+    if ($depUsaListas === 1) {
+        if ($lista_id === null || $lista_id <= 0) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Debe seleccionar la escuela para esta dependencia']);
+            $db->close();
+            exit;
+        }
+        $listaValida = $db->querySingle("SELECT id FROM listas WHERE id = $lista_id AND dependencia_id = $dependencia_id");
+        if (!$listaValida) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'Escuela no valida para la dependencia seleccionada']);
+            $db->close();
+            exit;
+        }
+    } else {
+        // Dependencia sin listas: descartar cualquier lista enviada
+        $lista_id = null;
     }
 
     if ($id > 0) {
@@ -105,13 +127,14 @@ try {
         $stmt = $db->prepare("
             UPDATE usuarios
             SET nombre = :nombre, apellido = :apellido, usuario = :usuario,
-                dependencia_id = :dep, activo = :activo
+                dependencia_id = :dep, lista_id = :lista, activo = :activo
             WHERE id = :id AND rol = 'dependencia'
         ");
         $stmt->bindValue(':nombre', mb_strtoupper($nombre, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':apellido', mb_strtoupper($apellido, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':usuario', strtolower($usuario), SQLITE3_TEXT);
         $stmt->bindValue(':dep', $dependencia_id, SQLITE3_INTEGER);
+        $stmt->bindValue(':lista', $lista_id, $lista_id === null ? SQLITE3_NULL : SQLITE3_INTEGER);
         $stmt->bindValue(':activo', $activo, SQLITE3_INTEGER);
         $stmt->bindValue(':id', $id, SQLITE3_INTEGER);
         $stmt->execute();
@@ -155,14 +178,15 @@ try {
         $usuarioGenerado = generarNombreUsuario($nombre, $apellido, $proximoId);
 
         $stmt = $db->prepare("
-            INSERT INTO usuarios (nombre, apellido, usuario, password_hash, rol, dependencia_id, activo)
-            VALUES (:nombre, :apellido, :usuario, :hash, 'dependencia', :dep, :activo)
+            INSERT INTO usuarios (nombre, apellido, usuario, password_hash, rol, dependencia_id, lista_id, activo)
+            VALUES (:nombre, :apellido, :usuario, :hash, 'dependencia', :dep, :lista, :activo)
         ");
         $stmt->bindValue(':nombre', mb_strtoupper($nombre, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':apellido', mb_strtoupper($apellido, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':usuario', $usuarioGenerado, SQLITE3_TEXT);
         $stmt->bindValue(':hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
         $stmt->bindValue(':dep', $dependencia_id, SQLITE3_INTEGER);
+        $stmt->bindValue(':lista', $lista_id, $lista_id === null ? SQLITE3_NULL : SQLITE3_INTEGER);
         $stmt->bindValue(':activo', $activo, SQLITE3_INTEGER);
         $stmt->execute();
 

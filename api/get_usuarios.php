@@ -16,10 +16,12 @@ try {
     $db = getDB();
 
     $results = $db->query("
-        SELECT u.id, u.nombre, u.apellido, u.usuario, u.rol, u.dependencia_id, u.activo, u.fecha_creacion,
-               d.nombre as dependencia_nombre, d.codigo as dependencia_codigo
+        SELECT u.id, u.nombre, u.apellido, u.usuario, u.rol, u.dependencia_id, u.lista_id, u.activo, u.fecha_creacion,
+               d.nombre as dependencia_nombre, d.codigo as dependencia_codigo,
+               l.codigo as lista_codigo, l.nombre as lista_nombre
         FROM usuarios u
         LEFT JOIN dependencias d ON u.dependencia_id = d.id
+        LEFT JOIN listas l ON u.lista_id = l.id
         ORDER BY u.rol DESC, u.nombre ASC
     ");
 

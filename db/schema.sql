@@ -76,9 +76,11 @@ CREATE TABLE IF NOT EXISTS usuarios (
     password_hash TEXT NOT NULL,
     rol TEXT NOT NULL DEFAULT 'dependencia',
     dependencia_id INTEGER,
+    lista_id INTEGER, -- escuela para funcionarios de ESC (usaListas)
     activo INTEGER DEFAULT 1,
     fecha_creacion TEXT DEFAULT (datetime('now', 'localtime')),
-    FOREIGN KEY (dependencia_id) REFERENCES dependencias(id)
+    FOREIGN KEY (dependencia_id) REFERENCES dependencias(id),
+    FOREIGN KEY (lista_id) REFERENCES listas(id)
 );
 
 -- ============================================================

@@ -134,6 +134,12 @@ $esAdmin = true;
                         <option value="">Seleccione la dependencia...</option>
                     </select>
                 </div>
+                <div class="form-group hidden" id="grupo-escuela-funcionario">
+                    <label>Escuela Academica <span class="required">*</span></label>
+                    <select class="form-control" id="usr-lista">
+                        <option value="">Seleccione la escuela...</option>
+                    </select>
+                </div>
                 <div class="form-group hidden" id="usr-activo-grupo">
                     <label class="d-flex align-center gap-1" style="font-weight:500;">
                         <input type="checkbox" id="usr-activo" checked> Usuario activo
