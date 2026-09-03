@@ -16,7 +16,7 @@ try {
     $db = getDB();
 
     $results = $db->query("
-        SELECT u.id, u.nombre, u.usuario, u.rol, u.dependencia_id, u.activo, u.fecha_creacion,
+        SELECT u.id, u.nombre, u.apellido, u.usuario, u.rol, u.dependencia_id, u.activo, u.fecha_creacion,
                d.nombre as dependencia_nombre, d.codigo as dependencia_codigo
         FROM usuarios u
         LEFT JOIN dependencias d ON u.dependencia_id = d.id

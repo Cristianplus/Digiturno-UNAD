@@ -85,16 +85,18 @@ try {
     }
 
     $dependencia_id = isset($user['dependencia_id']) ? intval($user['dependencia_id']) : null;
+    $apellido = isset($user['apellido']) ? trim($user['apellido']) : '';
+    $nombreCompleto = trim($user['nombre'] . ($apellido !== '' ? ' ' . $apellido : ''));
     iniciarSesion($perfil, [
         'user_id' => intval($user['id']),
         'username' => $user['usuario'],
-        'usuario_nombre' => $user['nombre'],
+        'usuario_nombre' => $nombreCompleto,
         'dependencia_id' => $dependencia_id
     ]);
 
     echo json_encode([
         'success' => true,
-        'message' => 'Bienvenido ' . $user['nombre'],
+        'message' => 'Bienvenido ' . $nombreCompleto,
         'redirect' => destinoSegunRol($perfil)
     ]);
 

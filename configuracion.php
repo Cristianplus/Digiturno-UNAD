@@ -98,7 +98,11 @@ $esAdmin = true;
                 <div id="usuario-modal-error"></div>
                 <div class="form-group">
                     <label>Nombre del Funcionario <span class="required">*</span></label>
-                    <input type="text" class="form-control" id="usr-nombre" placeholder="Ej: LUIS GARCIA" maxlength="120" spellcheck="false">
+                    <input type="text" class="form-control" id="usr-nombre" placeholder="Ej: LUIS" maxlength="60" spellcheck="false" style="text-transform:uppercase" oninput="this.value = this.value.toUpperCase()">
+                </div>
+                <div class="form-group">
+                    <label>Apellido <span class="required">*</span></label>
+                    <input type="text" class="form-control" id="usr-apellido" placeholder="Ej: GARCIA" maxlength="60" spellcheck="false" style="text-transform:uppercase" oninput="this.value = this.value.toUpperCase()">
                 </div>
                 <div class="form-group">
                     <label>Usuario <span class="required">*</span></label>

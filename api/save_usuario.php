@@ -30,6 +30,7 @@ try {
 
     $id = isset($data['id']) ? intval($data['id']) : 0;
     $nombre = trim($data['nombre'] ?? '');
+    $apellido = trim($data['apellido'] ?? '');
     $usuario = trim($data['usuario'] ?? '');
     $password = trim($data['password'] ?? '');
     $dependencia_id = isset($data['dependencia_id']) ? intval($data['dependencia_id']) : 0;
@@ -79,10 +80,12 @@ try {
         // EDITAR
         $stmt = $db->prepare("
             UPDATE usuarios
-            SET nombre = :nombre, usuario = :usuario, dependencia_id = :dep, activo = :activo
+            SET nombre = :nombre, apellido = :apellido, usuario = :usuario,
+                dependencia_id = :dep, activo = :activo
             WHERE id = :id AND rol = 'dependencia'
         ");
         $stmt->bindValue(':nombre', mb_strtoupper($nombre, 'UTF-8'), SQLITE3_TEXT);
+        $stmt->bindValue(':apellido', mb_strtoupper($apellido, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':usuario', strtolower($usuario), SQLITE3_TEXT);
         $stmt->bindValue(':dep', $dependencia_id, SQLITE3_INTEGER);
         $stmt->bindValue(':activo', $activo, SQLITE3_INTEGER);
@@ -124,10 +127,11 @@ try {
         }
 
         $stmt = $db->prepare("
-            INSERT INTO usuarios (nombre, usuario, password_hash, rol, dependencia_id, activo)
-            VALUES (:nombre, :usuario, :hash, 'dependencia', :dep, :activo)
+            INSERT INTO usuarios (nombre, apellido, usuario, password_hash, rol, dependencia_id, activo)
+            VALUES (:nombre, :apellido, :usuario, :hash, 'dependencia', :dep, :activo)
         ");
         $stmt->bindValue(':nombre', mb_strtoupper($nombre, 'UTF-8'), SQLITE3_TEXT);
+        $stmt->bindValue(':apellido', mb_strtoupper($apellido, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':usuario', strtolower($usuario), SQLITE3_TEXT);
         $stmt->bindValue(':hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
         $stmt->bindValue(':dep', $dependencia_id, SQLITE3_INTEGER);

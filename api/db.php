@@ -157,6 +157,11 @@ function initDB() {
             $db->exec("ALTER TABLE turnos ADD COLUMN lista_id INTEGER REFERENCES listas(id)");
         }
 
+        // 1d. Agregar columna apellido a usuarios si no existe (separacion nombre/apellido)
+        if (tablaExiste($db, 'usuarios') && !columnaExiste($db, 'usuarios', 'apellido')) {
+            $db->exec("ALTER TABLE usuarios ADD COLUMN apellido TEXT DEFAULT ''");
+        }
+
         // =====================================================================
         // PASO 2: Ejecutar schema (CREATE IF NOT EXISTS + datos iniciales)
         // =====================================================================
@@ -280,6 +285,9 @@ function ensureStructure() {
         }
         if (!tablaExiste($db, 'usuarios')) {
             $needsMigracion = true;
+        }
+        if (tablaExiste($db, 'usuarios') && !columnaExiste($db, 'usuarios', 'apellido')) {
+            $needsMigracion = true; // separacion nombre/apellido
         }
 
         if ($needsMigracion) {

@@ -82,7 +82,9 @@ async function cargarUsuarios() {
         `;
 
         usuarios.forEach(u => {
-            const nombre = $escapeHtml(u.nombre);
+            const nombre = $escapeHtml(
+                (u.nombre || '') + ((u.apellido || '').trim() ? ' ' + u.apellido : '')
+            );
             const dep = u.dependencia_codigo
                 ? `${u.dependencia_codigo} - ${u.dependencia_nombre}`
                 : '-';
@@ -140,6 +142,7 @@ function abrirModalNuevo() {
     usuarioEditandoId = null;
     document.getElementById('usuario-modal-titulo').textContent = 'Nuevo Funcionario';
     document.getElementById('usr-nombre').value = '';
+    document.getElementById('usr-apellido').value = '';
     document.getElementById('usr-usuario').value = '';
     document.getElementById('usr-password').value = '';
     document.getElementById('usr-password').removeAttribute('required');
@@ -165,8 +168,21 @@ function abrirModalEditar(id) {
             return;
         }
 
+        // Separar nombre y apellido. Si no hay apellido almacenado (dato legacy),
+        // se intenta extraer del nombre completo (ej. "LUIS GARCIA").
+        let nombre = u.nombre || '';
+        let apellido = (u.apellido || '').trim();
+        if (!apellido) {
+            const partes = nombre.trim().split(/\s+/);
+            if (partes.length > 1) {
+                apellido = partes.slice(1).join(' ');
+                nombre = partes[0];
+            }
+        }
+
         document.getElementById('usuario-modal-titulo').textContent = 'Editar Funcionario';
-        document.getElementById('usr-nombre').value = u.nombre;
+        document.getElementById('usr-nombre').value = nombre;
+        document.getElementById('usr-apellido').value = apellido;
         document.getElementById('usr-usuario').value = u.usuario;
         document.getElementById('usr-password').value = '';
         document.getElementById('usr-pass-label').innerHTML = 'Nueva contraseña (opcional)';
@@ -182,13 +198,14 @@ function abrirModalEditar(id) {
 
 async function guardarUsuario() {
     const nombre = document.getElementById('usr-nombre').value.trim();
+    const apellido = document.getElementById('usr-apellido').value.trim();
     const usuario = document.getElementById('usr-usuario').value.trim();
     const password = document.getElementById('usr-password').value;
     const dependencia_id = document.getElementById('usr-dependencia').value;
     const activo = document.getElementById('usr-activo').checked ? 1 : 0;
 
-    if (!nombre || !usuario || !dependencia_id) {
-        mostrarErrorModal('Nombre, usuario y dependencia son obligatorios');
+    if (!nombre || !apellido || !usuario || !dependencia_id) {
+        mostrarErrorModal('Nombre, apellido, usuario y dependencia son obligatorios');
         return;
     }
     if (!usuarioEditandoId && !password) {
@@ -207,6 +224,7 @@ async function guardarUsuario() {
     const payload = {
         id: usuarioEditandoId,
         nombre,
+        apellido,
         usuario,
         password,
         dependencia_id,
