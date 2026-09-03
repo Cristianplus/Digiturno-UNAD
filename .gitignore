@@ -1,0 +1,13 @@
+# Base de datos SQLite (datos locales)
+db/*.db
+db/*.db.bak
+
+# Archivos de sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Archivos de respaldo
+*.bak
+*.tmp
+*.swp
