@@ -28,7 +28,7 @@ if ($esDependencia) {
     <header class="header">
         <div class="header-inner">
             <div class="header-brand">
-                <div class="header-logo">UNAD</div>
+                <img class="header-logo" src="assets/img/Logo_unad_color.png" alt="Logo UNAD">
                 <div class="header-title">
                     <h1>DigiTurno UNAD</h1>
                     <p>Panel de Dependencia</p>

@@ -82,16 +82,9 @@ body.display-screen {
 }
 
 .header-logo {
-    width: 48px;
-    height: 48px;
-    background: var(--unad-yellow);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 900;
-    font-size: 18px;
-    color: var(--unad-blue-dark);
+    width: 75px;
+    height: 75px;
+    object-fit: contain;
     flex-shrink: 0;
 }
 
@@ -1267,9 +1260,8 @@ table tbody tr:nth-child(even):hover {
 }
 
 .profiles-header .header-logo {
-    width: 72px;
-    height: 72px;
-    font-size: 26px;
+    width: 197px;
+    height: 197px;
     margin: 0 auto 16px;
 }
 
