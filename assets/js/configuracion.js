@@ -7,11 +7,39 @@ const API_BASE = 'api';
 const FETCH_TIMEOUT = 15000;
 
 let usuarioEditandoId = null;
+let proximoUsuarioId = null;
+let usuarioExistente = ''; // usuario actual al editar (se mantiene)
 
 document.addEventListener('DOMContentLoaded', () => {
     cargarUsuarios();
     cargarDependencias();
+
+    // Auto-generacion de usuario: recalcular cuando cambian nombre/apellido
+    document.getElementById('usr-nombre').addEventListener('input', actualizarVistaPreviaUsuario);
+    document.getElementById('usr-apellido').addEventListener('input', actualizarVistaPreviaUsuario);
 });
+
+// Regenera la vista previa del usuario (nombre+apellido+id) en minusculas.
+// En modo edicion no se regenera: se conserva el usuario existente.
+function actualizarVistaPreviaUsuario() {
+    const campUsuario = document.getElementById('usr-usuario');
+    if (usuarioEditandoId) {
+        campUsuario.value = usuarioExistente;
+        return;
+    }
+    const nombre = document.getElementById('usr-nombre').value.toUpperCase();
+    const apellido = document.getElementById('usr-apellido').value.toUpperCase();
+
+    const base = (nombre + apellido)
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')   // quitar tildes
+        .replace(/ñ/g, 'n')
+        .replace(/[^a-z0-9]/g, '');        // quitar espacios y caracteres especiales
+
+    const id = proximoUsuarioId ? String(proximoUsuarioId).padStart(4, '0') : '????';
+    campUsuario.value = (base || 'usuario') + id;
+}
 
 // fetch con timeout y parseo tolerante de JSON
 async function fetchJSON(url, options = {}) {
@@ -51,6 +79,10 @@ async function cargarUsuarios() {
         if (!data || !data.success) {
             container.innerHTML = '<div class="alert alert-error">No pudo cargarse la lista de usuarios</div>';
             return;
+        }
+
+        if (typeof data.next_usuario_id !== 'undefined') {
+            proximoUsuarioId = parseInt(data.next_usuario_id, 10);
         }
 
         const usuarios = data.usuarios || [];
@@ -140,6 +172,7 @@ async function cargarDependencias() {
 
 function abrirModalNuevo() {
     usuarioEditandoId = null;
+    usuarioExistente = '';
     document.getElementById('usuario-modal-titulo').textContent = 'Nuevo Funcionario';
     document.getElementById('usr-nombre').value = '';
     document.getElementById('usr-apellido').value = '';
@@ -152,6 +185,7 @@ function abrirModalNuevo() {
     document.getElementById('usr-activo-grupo').classList.add('hidden');
     limpiarErrorModal();
     document.getElementById('modal-usuario').classList.add('active');
+    actualizarVistaPreviaUsuario();
     setTimeout(() => document.getElementById('usr-nombre').focus(), 100);
 }
 
@@ -183,7 +217,8 @@ function abrirModalEditar(id) {
         document.getElementById('usuario-modal-titulo').textContent = 'Editar Funcionario';
         document.getElementById('usr-nombre').value = nombre;
         document.getElementById('usr-apellido').value = apellido;
-        document.getElementById('usr-usuario').value = u.usuario;
+        usuarioExistente = u.usuario || '';
+        document.getElementById('usr-usuario').value = usuarioExistente;
         document.getElementById('usr-password').value = '';
         document.getElementById('usr-pass-label').innerHTML = 'Nueva contraseña (opcional)';
         document.getElementById('usr-password').placeholder = 'Deje vacio para mantener la actual';

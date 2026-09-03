@@ -24,6 +24,25 @@ if (!$data) {
     exit;
 }
 
+/**
+ * Genera automaticamente el nombre de usuario en minusculas a partir de
+ * nombre + apellido + id de creacion (solo alfanumericos, sin tildes/espacios).
+ * Ej: LUIS + PEREZ + id 1 => luisperez0001
+ */
+function generarNombreUsuario($nombre, $apellido, $id) {
+    $base = mb_strtolower($nombre . $apellido, 'UTF-8');
+    $sinAcentos = strtr($base, [
+        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u', 'ñ' => 'n',
+        'à' => 'a', 'è' => 'e', 'ì' => 'i', 'ò' => 'o', 'ù' => 'u',
+    ]);
+    // Quitar caracteres no alfanumericos (espacios, puntos, guiones, etc.)
+    $limpio = preg_replace('/[^a-z0-9]/', '', $sinAcentos);
+    if ($limpio === '') {
+        $limpio = 'usuario';
+    }
+    return $limpio . sprintf('%04d', $id);
+}
+
 try {
     ensureStructure();
     $db = getDB();
@@ -36,17 +55,9 @@ try {
     $dependencia_id = isset($data['dependencia_id']) ? intval($data['dependencia_id']) : 0;
     $activo = isset($data['activo']) ? (intval($data['activo']) === 1 ? 1 : 0) : 1;
 
-    if ($nombre === '' || $usuario === '' || $dependencia_id <= 0) {
+    if ($nombre === '' || $dependencia_id <= 0) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Nombre, usuario y dependencia son obligatorios']);
-        $db->close();
-        exit;
-    }
-
-    // El usuario no puede contener espacios ni caracteres especiales
-    if (!preg_match('/^[A-Za-z0-9_.\-]+$/', $usuario)) {
-        http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'El usuario solo puede contener letras, numeros, punto, guion o guion bajo']);
+        echo json_encode(['success' => false, 'message' => 'Nombre y dependencia son obligatorios']);
         $db->close();
         exit;
     }
@@ -60,23 +71,36 @@ try {
         exit;
     }
 
-    // Verificar unicidad de usuario (salvo el mismo registro al editar)
-    $stmtCheck = $db->prepare("
-        SELECT id FROM usuarios
-        WHERE usuario = :usuario COLLATE NOCASE AND id != :id
-        LIMIT 1
-    ");
-    $stmtCheck->bindValue(':usuario', $usuario, SQLITE3_TEXT);
-    $stmtCheck->bindValue(':id', $id, SQLITE3_INTEGER);
-    $existente = $stmtCheck->execute()->fetchArray(SQLITE3_ASSOC);
-    if ($existente) {
-        http_response_code(409);
-        echo json_encode(['success' => false, 'message' => 'Ese nombre de usuario ya esta en uso por otro usuario']);
-        $db->close();
-        exit;
-    }
-
     if ($id > 0) {
+        // EDITAR: el nombre de usuario se mantiene; se valida si viene en el request.
+        if ($usuario === '') {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'El nombre de usuario es obligatorio']);
+            $db->close();
+            exit;
+        }
+        if (!preg_match('/^[A-Za-z0-9_.\-]+$/', $usuario)) {
+            http_response_code(400);
+            echo json_encode(['success' => false, 'message' => 'El usuario solo puede contener letras, numeros, punto, guion o guion bajo']);
+            $db->close();
+            exit;
+        }
+        // Verificar unicidad de usuario (salvo el mismo registro)
+        $stmtCheck = $db->prepare("
+            SELECT id FROM usuarios
+            WHERE usuario = :usuario COLLATE NOCASE AND id != :id
+            LIMIT 1
+        ");
+        $stmtCheck->bindValue(':usuario', $usuario, SQLITE3_TEXT);
+        $stmtCheck->bindValue(':id', $id, SQLITE3_INTEGER);
+        $existente = $stmtCheck->execute()->fetchArray(SQLITE3_ASSOC);
+        if ($existente) {
+            http_response_code(409);
+            echo json_encode(['success' => false, 'message' => 'Ese nombre de usuario ya esta en uso por otro usuario']);
+            $db->close();
+            exit;
+        }
+
         // EDITAR
         $stmt = $db->prepare("
             UPDATE usuarios
@@ -126,19 +150,38 @@ try {
             exit;
         }
 
+        // Generar automaticamente el nombre de usuario con el proximo id de creacion
+        $proximoId = intval($db->querySingle("SELECT COALESCE(MAX(id), 0) + 1 FROM usuarios"));
+        $usuarioGenerado = generarNombreUsuario($nombre, $apellido, $proximoId);
+
         $stmt = $db->prepare("
             INSERT INTO usuarios (nombre, apellido, usuario, password_hash, rol, dependencia_id, activo)
             VALUES (:nombre, :apellido, :usuario, :hash, 'dependencia', :dep, :activo)
         ");
         $stmt->bindValue(':nombre', mb_strtoupper($nombre, 'UTF-8'), SQLITE3_TEXT);
         $stmt->bindValue(':apellido', mb_strtoupper($apellido, 'UTF-8'), SQLITE3_TEXT);
-        $stmt->bindValue(':usuario', strtolower($usuario), SQLITE3_TEXT);
+        $stmt->bindValue(':usuario', $usuarioGenerado, SQLITE3_TEXT);
         $stmt->bindValue(':hash', password_hash($password, PASSWORD_DEFAULT), SQLITE3_TEXT);
         $stmt->bindValue(':dep', $dependencia_id, SQLITE3_INTEGER);
         $stmt->bindValue(':activo', $activo, SQLITE3_INTEGER);
         $stmt->execute();
 
-        echo json_encode(['success' => true, 'message' => 'Funcionario creado correctamente']);
+        $nuevoId = intval($db->lastInsertRowID());
+
+        // Si el id real difiere del estimado (raro), re-escribir el usuario con el id definitivo
+        if ($nuevoId !== $proximoId) {
+            $usuarioGenerado = generarNombreUsuario($nombre, $apellido, $nuevoId);
+            $stmtUpd = $db->prepare("UPDATE usuarios SET usuario = :usuario WHERE id = :id");
+            $stmtUpd->bindValue(':usuario', $usuarioGenerado, SQLITE3_TEXT);
+            $stmtUpd->bindValue(':id', $nuevoId, SQLITE3_INTEGER);
+            $stmtUpd->execute();
+        }
+
+        echo json_encode([
+            'success' => true,
+            'message' => 'Funcionario creado correctamente. Usuario: ' . $usuarioGenerado,
+            'usuario' => $usuarioGenerado
+        ]);
     }
 
     $db->close();

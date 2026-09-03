@@ -30,7 +30,8 @@ try {
 
     echo json_encode([
         'success' => true,
-        'usuarios' => $usuarios
+        'usuarios' => $usuarios,
+        'next_usuario_id' => intval($db->querySingle("SELECT COALESCE(MAX(id), 0) + 1 FROM usuarios"))
     ]);
 
     $db->close();

@@ -106,7 +106,8 @@ $esAdmin = true;
                 </div>
                 <div class="form-group">
                     <label>Usuario <span class="required">*</span></label>
-                    <input type="text" class="form-control" id="usr-usuario" placeholder="Ej: luis.garcia" maxlength="50" autocomplete="off" spellcheck="false">
+                    <input type="text" class="form-control" id="usr-usuario" placeholder="Se genera automaticamente" autocomplete="off" spellcheck="false" readonly>
+                    <small style="color:var(--unad-text-light);">Se genera automaticamente: nombre+apellido+número (ej. luisperez0001)</small>
                 </div>
                 <div class="form-group">
                     <label id="usr-pass-label">Contraseña <span class="required">*</span></label>
