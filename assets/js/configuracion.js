@@ -41,6 +41,27 @@ function actualizarVistaPreviaUsuario() {
     campUsuario.value = (base || 'usuario') + id;
 }
 
+// Alterna la visibilidad de la contraseña (icono del ojo)
+function toggleUsuarioPassword() {
+    togglePassVisibility(document.getElementById('usr-pass-toggle'));
+}
+
+// Alterna la visibilidad de una contraseña usando el id del campo que
+// referencia el boton a traves del atributo data-pass-toggle.
+function togglePassVisibility(boton) {
+    if (!boton) return;
+    const idCampo = boton.getAttribute('data-pass-toggle');
+    const input = document.getElementById(idCampo);
+    if (!input) return;
+    const botonOjo = boton.querySelector('.pass-eyes-eye');
+    const botonOjoTachado = boton.querySelector('.pass-eyes-eye-off');
+    const esOculto = input.type === 'password';
+    input.type = esOculto ? 'text' : 'password';
+    if (botonOjo) botonOjo.style.display = esOculto ? 'none' : '';
+    if (botonOjoTachado) botonOjoTachado.style.display = esOculto ? '' : 'none';
+    input.focus();
+}
+
 // fetch con timeout y parseo tolerante de JSON
 async function fetchJSON(url, options = {}) {
     const controlador = new AbortController();
@@ -312,14 +333,9 @@ async function eliminarUsuario(id) {
 async function cambiarPasswordAdmin() {
     const actual = document.getElementById('adm-pass-actual').value;
     const nueva = document.getElementById('adm-pass-nueva').value;
-    const confirm = document.getElementById('adm-pass-confirm').value;
 
-    if (!actual || !nueva || !confirm) {
+    if (!actual || !nueva) {
         mostrarAlertaAdmin('Complete todos los campos', 'error');
-        return;
-    }
-    if (nueva !== confirm) {
-        mostrarAlertaAdmin('La contraseña nueva no coincide con la confirmacion', 'error');
         return;
     }
     if (nueva.length < 6) {
@@ -337,7 +353,6 @@ async function cambiarPasswordAdmin() {
             mostrarAlertaAdmin(res.data.message, 'success');
             document.getElementById('adm-pass-actual').value = '';
             document.getElementById('adm-pass-nueva').value = '';
-            document.getElementById('adm-pass-confirm').value = '';
         } else {
             mostrarAlertaAdmin(res.data?.message || 'No se pudo cambiar la contraseña', 'error');
         }

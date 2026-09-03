@@ -12,6 +12,7 @@ function getDB() {
         }
         $db = new SQLite3(DB_PATH);
         $db->enableExceptions(true);
+        $db->busyTimeout(10000);
         $db->exec('PRAGMA journal_mode = WAL');
         $db->exec('PRAGMA foreign_keys = ON');
         return $db;

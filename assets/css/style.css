@@ -222,6 +222,44 @@ body.display-screen {
     color: var(--unad-text-light);
 }
 
+/* Contenedor del campo de contraseña con visibilidad (ojo) */
+.pass-wrap {
+    position: relative;
+}
+
+.pass-wrap .form-control {
+    padding-right: 44px;
+}
+
+.pass-toggle {
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    color: var(--unad-text-light);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: color 0.15s ease, background 0.15s ease;
+}
+
+.pass-toggle:hover {
+    color: var(--unad-blue-dark);
+    background: rgba(0, 51, 102, 0.08);
+}
+
+.pass-toggle:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 116, 217, 0.15);
+}
+
 select.form-control {
     cursor: pointer;
     appearance: none;
