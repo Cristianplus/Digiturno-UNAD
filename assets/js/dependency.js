@@ -8,9 +8,16 @@ const REFRESH_INTERVAL = 500; // 0.5 segundos
 
 let dependenciaActual = null;
 let refreshTimer = null;
+let gridSelectTimer = null;
+let gridEscTimer = null;
+let escActual = null;
 
 // Inicializar
 document.addEventListener('DOMContentLoaded', () => {
+    // Delegacion de eventos: el listener vive en el contenedor fijo, asi sobrevive
+    // al re-render de los turnos (0.5s) y el clic nunca se pierde.
+    document.getElementById('lista-pendientes').addEventListener('click', onListaPendientesClick);
+
     // Rol dependencia: la dependencia viene fija del perfil del usuario (admin la asigna).
     if (typeof DEP_FIJA !== 'undefined' && DEP_FIJA !== null && DEP_FIJA !== '') {
         ingresarDependenciaFija(DEP_FIJA, DEP_FIJA_NOMBRE || 'Dependencia');
@@ -19,6 +26,27 @@ document.addEventListener('DOMContentLoaded', () => {
         cargarDependencias();
     }
 });
+
+// Handler delegado para los botones de los turnos pendientes
+function onListaPendientesClick(e) {
+    const btn = e.target.closest('button[data-accion]');
+    if (!btn) return;
+
+    const accion = btn.dataset.accion;
+    const turnoId = btn.dataset.id;
+
+    if (accion === 'llamar') {
+        // Evitar dobles envíos mientras se procesa
+        btn.disabled = true;
+        btn.textContent = '...';
+        llamarTurno(turnoId, btn);
+    } else if (accion === 'finalizar') {
+        abrirModalFinalizar(turnoId, btn.dataset.numero, btn.dataset.nombre);
+    } else if (accion === 'noasistio') {
+        btn.disabled = true;
+        marcarNoAsistio(turnoId, btn);
+    }
+}
 
 // Ingresar con la dependencia asignada al usuario (rol dependencia)
 function ingresarDependenciaFija(depId, nombre) {
@@ -30,26 +58,62 @@ function ingresarDependenciaFija(depId, nombre) {
     refreshTimer = setInterval(refrescarTurnos, REFRESH_INTERVAL);
 }
 
-// Cargar dependencias
+// Cargar dependencias (listado completo visible a la vez, rol admin)
 async function cargarDependencias() {
     try {
         const resp = await fetch(`${API_BASE}/get_dependencies.php`);
         const data = await resp.json();
 
         if (data.success) {
-            const select = document.getElementById('sel-dependencia');
+            // Ocultar placeholder de carga
+            const grid = document.getElementById('deps-grid');
+            grid.innerHTML = '';
+
+            if (!data.dependencias || data.dependencias.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <p>No hay dependencias activas</p>
+                    </div>
+                `;
+                return;
+            }
+
             data.dependencias.forEach(dep => {
-                const opt = document.createElement('option');
-                opt.value = dep.id;
-                opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-                select.appendChild(opt);
+                // La unica dependencia con sub-listado (escuelas) es ESC
+                const esEsc = dep.codigo.toUpperCase() === 'ESC';
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'dep-card' + (esEsc ? ' dep-card-esc' : '');
+                card.dataset.id = dep.id;
+                card.dataset.codigo = dep.codigo;
+                card.dataset.nombre = dep.nombre;
+
+                const enEspera = parseInt(dep.en_espera || 0, 10);
+                const esperaHtml = enEspera > 0
+                    ? `<span class="dep-waiting">&#128100; ${enEspera} en espera</span>`
+                    : '';
+
+                card.innerHTML = `
+                    <span class="dep-card-codigo">${dep.codigo}</span>
+                    <span class="dep-card-nombre">${dep.nombre}</span>
+                    ${esperaHtml}
+                `;
+                card.addEventListener('click', () => seleccionarDependencia(dep));
+                grid.appendChild(card);
             });
 
-            // Restaurar de sessionStorage
+            // Refrescar el conteo de espera periodicamente mientras se muestra el selector
+            if (!gridSelectTimer) {
+                gridSelectTimer = setInterval(actualizarEsperaGrid, REFRESH_INTERVAL);
+            }
+
+            // Restaurar de sessionStorage cuando no es ESC
             const guardada = sessionStorage.getItem('dependencia_id');
             if (guardada) {
-                select.value = guardada;
-                ingresarDependencia();
+                const depGuardada = data.dependencias.find(d => String(d.id) === String(guardada));
+                if (depGuardada && depGuardada.codigo.toUpperCase() !== 'ESC') {
+                    ingresarAlPanel(depGuardada);
+                }
             }
         }
     } catch (error) {
@@ -57,25 +121,175 @@ async function cargarDependencias() {
     }
 }
 
-// Ingresar al panel de la dependencia
-function ingresarDependencia() {
-    const sel = document.getElementById('sel-dependencia');
-    const depId = sel.value;
+// Actualizar solo el indicador de espera del grid sin re-renderizar (mantiene estado visual)
+async function actualizarEsperaGrid() {
+    const grid = document.getElementById('deps-grid');
+    if (!grid || grid.classList.contains('hidden') || !document.getElementById('card-seleccion')) return;
 
-    if (!depId) {
-        mostrarToast('Seleccione una dependencia', 'error');
+    // No actualizar si el panel de gestion ya esta visible
+    if (!document.getElementById('panel-gestion').classList.contains('hidden')) {
+        if (gridSelectTimer) { clearInterval(gridSelectTimer); gridSelectTimer = null; }
         return;
     }
 
-    dependenciaActual = depId;
-    sessionStorage.setItem('dependencia_id', depId);
+    try {
+        const resp = await fetch(`${API_BASE}/get_dependencies.php`);
+        const data = await resp.json();
+        if (!data.success) return;
 
-    const depTexto = sel.options[sel.selectedIndex].text;
+        data.dependencias.forEach(dep => {
+            const enEspera = parseInt(dep.en_espera || 0, 10);
+            const card = grid.querySelector(`.dep-card[data-id="${dep.id}"]`);
+            if (!card) return;
+
+            let ell = card.querySelector('.dep-waiting');
+            if (enEspera > 0) {
+                if (!ell) {
+                    ell = document.createElement('span');
+                    ell.className = 'dep-waiting';
+                    card.appendChild(ell);
+                }
+                ell.innerHTML = `&#128100; ${enEspera} en espera`;
+            } else if (ell) {
+                ell.remove();
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Seleccionar una dependencia del grid
+function seleccionarDependencia(dep) {
+    if (dep.codigo.toUpperCase() === 'ESC') {
+        // ESC: desplegar las escuelas almacenadas
+        cargarEscuelas(dep);
+        return;
+    }
+    ingresarAlPanel(dep);
+}
+
+// Cargar y mostrar las escuelas de ESC
+async function cargarEscuelas(dep) {
+    escActual = dep;
+
+    try {
+        const resp = await fetch(`${API_BASE}/get_lists.php?dependencia_id=${dep.id}`);
+        const data = await resp.json();
+
+        const bloque = document.getElementById('escuelas-block');
+        const gridEsc = document.getElementById('escs-grid');
+        gridEsc.innerHTML = '';
+
+        if (data.success && data.listas && data.listas.length > 0) {
+            data.listas.forEach(esc => {
+                const card = document.createElement('button');
+                card.type = 'button';
+                card.className = 'escs-card';
+                card.dataset.id = esc.id;
+                card.dataset.nombre = esc.nombre;
+
+                const enEspera = parseInt(esc.en_espera || 0, 10);
+                const esperaHtml = enEspera > 0
+                    ? `<span class="dep-waiting">&#128100; ${enEspera} en espera</span>`
+                    : '';
+
+                card.innerHTML = `
+                    <span class="escs-card-codigo">${esc.codigo || ''}</span>
+                    <span class="escs-card-nombre">${esc.nombre}</span>
+                    ${esperaHtml}
+                `;
+                card.addEventListener('click', () => ingresarAlPanel(dep, esc));
+                gridEsc.appendChild(card);
+            });
+        } else {
+            gridEsc.innerHTML = `
+                <div class="empty-state">
+                    <p>No hay escuelas registradas para ESC</p>
+                </div>
+            `;
+        }
+
+        // Ocultar grid de dependencias y mostrar escuelas
+        document.getElementById('deps-grid').classList.add('hidden');
+        document.querySelector('.selector-hint').classList.add('hidden');
+        bloque.classList.remove('hidden');
+
+        // Refrescar conteo de espera de las escuelas periodicamente
+        if (gridEscTimer) { clearInterval(gridEscTimer); }
+        gridEscTimer = setInterval(actualizarEsperaEscuelas, REFRESH_INTERVAL);
+    } catch (error) {
+        console.error('Error:', error);
+        mostrarToast('Error al cargar las escuelas', 'error');
+    }
+}
+
+// Volver de la seleccion de escuelas al listado completo de dependencias
+function volverADependencias() {
+    document.getElementById('escuelas-block').classList.add('hidden');
+    document.getElementById('deps-grid').classList.remove('hidden');
+    document.querySelector('.selector-hint').classList.remove('hidden');
+
+    if (gridEscTimer) { clearInterval(gridEscTimer); gridEscTimer = null; }
+}
+
+// Actualizar solo el indicador de espera del grid de escuelas sin re-renderizar
+async function actualizarEsperaEscuelas() {
+    const bloque = document.getElementById('escuelas-block');
+    const gridEsc = document.getElementById('escs-grid');
+    if (!bloque || !gridEsc || bloque.classList.contains('hidden')) return;
+
+    // No actualizar si el panel de gestion ya esta visible
+    if (!document.getElementById('panel-gestion').classList.contains('hidden')) {
+        if (gridEscTimer) { clearInterval(gridEscTimer); gridEscTimer = null; }
+        return;
+    }
+
+    if (!escActual) return;
+
+    try {
+        const resp = await fetch(`${API_BASE}/get_lists.php?dependencia_id=${escActual.id}`);
+        const data = await resp.json();
+        if (!data.success) return;
+
+        data.listas.forEach(esc => {
+            const enEspera = parseInt(esc.en_espera || 0, 10);
+            const card = gridEsc.querySelector(`.escs-card[data-id="${esc.id}"]`);
+            if (!card) return;
+
+            let ell = card.querySelector('.dep-waiting');
+            if (enEspera > 0) {
+                if (!ell) {
+                    ell = document.createElement('span');
+                    ell.className = 'dep-waiting';
+                    card.appendChild(ell);
+                }
+                ell.innerHTML = `&#128100; ${enEspera} en espera`;
+            } else if (ell) {
+                ell.remove();
+            }
+        });
+    } catch (error) {
+        console.error('Error:', error);
+    }
+}
+
+// Ingresar al panel de la dependencia (opcionalmente con una escuela seleccionada)
+function ingresarAlPanel(dep, escuela) {
+    dependenciaActual = dep.id;
+    sessionStorage.setItem('dependencia_id', dep.id);
+
+    const depTexto = `${dep.codigo} - ${dep.nombre}`;
     document.getElementById('dep-badge').textContent = depTexto;
-    document.getElementById('dep-titulo').textContent = `Panel - ${depTexto}`;
+    document.getElementById('dep-titulo').textContent =
+        escuela ? `Panel - ESC - ${escuela.nombre}` : `Panel - ${depTexto}`;
 
     document.getElementById('card-seleccion').classList.add('hidden');
     document.getElementById('panel-gestion').classList.remove('hidden');
+
+    // Detener refresco de los selectores ya no visibles
+    if (gridSelectTimer) { clearInterval(gridSelectTimer); gridSelectTimer = null; }
+    if (gridEscTimer) { clearInterval(gridEscTimer); gridEscTimer = null; }
 
     refrescarTurnos();
     refreshTimer = setInterval(refrescarTurnos, REFRESH_INTERVAL);
@@ -105,7 +319,6 @@ async function refrescarTurnos() {
 
         renderPendientes(data.pendientes);
         renderHistorial(data.atendidos_hoy);
-
         // Actualizar contadores
         document.getElementById('count-pendientes').textContent = data.pendientes.length;
         document.getElementById('count-historial').textContent = data.atendidos_hoy.length;
@@ -120,128 +333,140 @@ async function refrescarTurnos() {
 }
 
 // Renderizar turnos pendientes (en cola, llamados y en atencion, ordenados del mas antiguo al mas reciente)
+// Solo reemplaza el DOM si el contenido realmente cambio (evita recrear botones
+// sobre los que el usuario esta a punto de hacer click durante el auto-refresh).
 function renderPendientes(pendientes) {
     const container = document.getElementById('lista-pendientes');
 
+    let html;
     if (!pendientes || pendientes.length === 0) {
-        container.innerHTML = `
+        html = `
             <div class="empty-state">
                 <div class="empty-icon">&#128203;</div>
                 <h3>Sin turnos pendientes</h3>
                 <p>No hay visitantes en cola o llamados para esta dependencia</p>
             </div>
         `;
-        return;
+    } else {
+        html = '';
+        pendientes.forEach(t => {
+            const esRegistrado = t.estado === 'registrado';
+            const esLlamado = t.estado === 'llamado' || t.estado === 'en_atencion';
+            const detalle = t.lista_codigo ? `${t.lista_codigo} - ${t.lista_nombre}` : t.tipo_visitante || 'visitante';
+
+            // Botones segun estado:
+            // - registrado (en cola): solo "Llamar"
+            // - llamado/en_atencion: "Finalizar" y "No Asistio" (sin boton "Atender")
+            // Se usan data-* + delegacion de eventos (no onclick) para no perder el
+            // manejador cuando el panel se re-renderiza por el auto-refresh de 0.5s.
+            let acciones = '';
+            if (esRegistrado) {
+                acciones = `
+                    <button class="btn btn-sm btn-warning" data-accion="llamar" data-id="${t.id}">
+                        Llamar
+                    </button>
+                `;
+            } else {
+                acciones = `
+                    <button class="btn btn-sm btn-danger" data-accion="finalizar" data-id="${t.id}"
+                            data-numero="${t.numero_turno}" data-nombre="${t.nombres} ${t.apellidos}">
+                        Finalizar
+                    </button>
+                    <button class="btn btn-sm btn-outline" data-accion="noasistio" data-id="${t.id}">
+                        No Asistio
+                    </button>
+                `;
+            }
+
+            html += `
+                <div class="turno-card ${esLlamado ? 'turno-urgente' : ''}">
+                    <div class="turno-card-info">
+                        <div class="turno-card-numero">${t.numero_turno}</div>
+                        <div class="turno-card-nombre">${t.nombres} ${t.apellidos}</div>
+                        <div class="turno-card-meta">
+                            C.C. ${t.cedula} | ${detalle}
+                        </div>
+                        <div class="turno-card-meta">
+                            Llegada: ${t.fecha_ingreso || '-'}
+                            ${t.fecha_llamada ? ' | Llamado: ' + t.fecha_llamada : ''}
+                        </div>
+                    </div>
+                    <div class="turno-card-actions">
+                        ${acciones}
+                    </div>
+                </div>
+            `;
+        });
     }
 
-    let html = '';
-    pendientes.forEach(t => {
-        const esRegistrado = t.estado === 'registrado';
-        const esLlamado = t.estado === 'llamado' || t.estado === 'en_atencion';
-        const detalle = t.lista_codigo ? `${t.lista_codigo} - ${t.lista_nombre}` : t.tipo_visitante || 'visitante';
-
-        // Botones segun estado:
-        // - registrado (en cola): solo "Llamar"
-        // - llamado/en_atencion: "Finalizar" y "No Asistio" (sin boton "Atender")
-        let acciones = '';
-        if (esRegistrado) {
-            acciones = `
-                <button class="btn btn-sm btn-warning" onclick="llamarTurno(${t.id})">
-                    Llamar
-                </button>
-            `;
-        } else {
-            acciones = `
-                <button class="btn btn-sm btn-danger" onclick="abrirModalFinalizar(${t.id}, '${t.numero_turno}', '${t.nombres} ${t.apellidos}')">
-                    Finalizar
-                </button>
-                <button class="btn btn-sm btn-outline" onclick="marcarNoAsistio(${t.id})">
-                    No Asistio
-                </button>
-            `;
-        }
-
-        html += `
-            <div class="turno-card ${esLlamado ? 'turno-urgente' : ''}">
-                <div class="turno-card-info">
-                    <div class="turno-card-numero">${t.numero_turno}</div>
-                    <div class="turno-card-nombre">${t.nombres} ${t.apellidos}</div>
-                    <div class="turno-card-meta">
-                        C.C. ${t.cedula} | ${detalle}
-                    </div>
-                    <div class="turno-card-meta">
-                        Llegada: ${t.fecha_ingreso || '-'}
-                        ${t.fecha_llamada ? ' | Llamado: ' + t.fecha_llamada : ''}
-                    </div>
-                </div>
-                <div class="turno-card-actions">
-                    ${acciones}
-                </div>
-            </div>
-        `;
-    });
-
-    container.innerHTML = html;
+    // Solo tocar el DOM si el HTML cambio
+    if (container.innerHTML.trim() !== html.trim()) {
+        container.innerHTML = html;
+    }
 }
 
 // Renderizar historial del dia
+// Solo reemplaza el DOM si el contenido cambio (misma logica anti-re-render que renderPendientes).
 function renderHistorial(atendidos) {
     const container = document.getElementById('lista-historial');
 
+    let html;
     if (!atendidos || atendidos.length === 0) {
-        container.innerHTML = `
+        html = `
             <div class="empty-state">
                 <div class="empty-icon">&#9989;</div>
                 <h3>Sin atenciones hoy</h3>
                 <p>Aun no se han atendido visitantes hoy</p>
             </div>
         `;
-        return;
+    } else {
+        html = `
+            <div class="table-responsive">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Turno</th>
+                            <th>Visitante</th>
+                            <th>Cedula</th>
+                            <th>Estado</th>
+                            <th>Hora Llegada</th>
+                            <th>Hora Salida</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        atendidos.forEach(t => {
+            const badge = t.estado === 'finalizado'
+                ? '<span class="badge badge-finalizado">Atendido</span>'
+                : '<span class="badge badge-no_asistio">No Asistio</span>';
+
+            const horaFin = t.fecha_fin ? t.fecha_fin.split(' ')[1] || '-' : '-';
+
+            html += `
+                <tr>
+                    <td><strong>${t.numero_turno}</strong></td>
+                    <td>${t.nombres} ${t.apellidos}</td>
+                    <td>${t.cedula}</td>
+                    <td>${badge}</td>
+                    <td>${t.fecha_ingreso ? t.fecha_ingreso.split(' ')[1] || '-' : '-'}</td>
+                    <td>${horaFin}</td>
+                </tr>
+            `;
+        });
+
+        html += '</tbody></table></div>';
     }
 
-    let html = `
-        <div class="table-responsive">
-            <table>
-                <thead>
-                    <tr>
-                        <th>Turno</th>
-                        <th>Visitante</th>
-                        <th>Cedula</th>
-                        <th>Estado</th>
-                        <th>Hora Llegada</th>
-                        <th>Hora Salida</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
-
-    atendidos.forEach(t => {
-        const badge = t.estado === 'finalizado'
-            ? '<span class="badge badge-finalizado">Atendido</span>'
-            : '<span class="badge badge-no_asistio">No Asistio</span>';
-
-        const horaFin = t.fecha_fin ? t.fecha_fin.split(' ')[1] || '-' : '-';
-
-        html += `
-            <tr>
-                <td><strong>${t.numero_turno}</strong></td>
-                <td>${t.nombres} ${t.apellidos}</td>
-                <td>${t.cedula}</td>
-                <td>${badge}</td>
-                <td>${t.fecha_ingreso ? t.fecha_ingreso.split(' ')[1] || '-' : '-'}</td>
-                <td>${horaFin}</td>
-            </tr>
-        `;
-    });
-
-    html += '</tbody></table></div>';
-    container.innerHTML = html;
+    if (container.innerHTML.trim() !== html.trim()) {
+        container.innerHTML = html;
+    }
 }
 
 // === ACCIONES ===
 
 // Llamar un turno
-async function llamarTurno(turnoId) {
+async function llamarTurno(turnoId, boton) {
     try {
         const resp = await fetch(`${API_BASE}/call_turn.php`, {
             method: 'POST',
@@ -255,9 +480,18 @@ async function llamarTurno(turnoId) {
             refrescarTurnos();
         } else {
             mostrarToast(data.message, 'error');
+            // Rehabilitar el boton si fallo y aun esta en el DOM
+            if (boton && boton.isConnected) {
+                boton.disabled = false;
+                boton.textContent = 'Llamar';
+            }
         }
     } catch (error) {
         mostrarToast('Error de conexion', 'error');
+        if (boton && boton.isConnected) {
+            boton.disabled = false;
+            boton.textContent = 'Llamar';
+        }
     }
 }
 
@@ -310,8 +544,13 @@ async function finalizarAtencion(turnoId) {
 }
 
 // Marcar no asistio
-async function marcarNoAsistio(turnoId) {
-    if (!confirm('Marcar este turno como no asistido?')) return;
+async function marcarNoAsistio(turnoId, boton) {
+    if (!confirm('Marcar este turno como no asistido?')) {
+        if (boton && boton.isConnected) {
+            boton.disabled = false;
+        }
+        return;
+    }
 
     try {
         const resp = await fetch(`${API_BASE}/no_show.php`, {
@@ -326,9 +565,11 @@ async function marcarNoAsistio(turnoId) {
             refrescarTurnos();
         } else {
             mostrarToast(data.message, 'error');
+            if (boton && boton.isConnected) boton.disabled = false;
         }
     } catch (error) {
         mostrarToast('Error de conexion', 'error');
+        if (boton && boton.isConnected) boton.disabled = false;
     }
 }
 

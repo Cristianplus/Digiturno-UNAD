@@ -32,12 +32,31 @@ try {
 
     $turno_id = intval($data['turno_id']);
 
-    // Verificar que el turno este en estado registrado
-    $turno = $db->querySingle("SELECT * FROM turnos WHERE id = $turno_id AND estado = 'registrado'", true);
+    // Buscar el turno sin restringir estado para poder ser idempotente
+    $turno = $db->querySingle("SELECT * FROM turnos WHERE id = $turno_id", true);
 
     if (!$turno) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Turno no encontrado o ya fue llamado']);
+        echo json_encode(['success' => false, 'message' => 'Turno no encontrado']);
+        exit;
+    }
+
+    // Idempotencia: si el turno ya fue llamado o esta en atencion, no es error.
+    // Evita que el segundo click (por auto-refresh o doble click) falle sin motivo.
+    if (in_array($turno['estado'], ['llamado', 'en_atencion'])) {
+        echo json_encode([
+            'success' => true,
+            'message' => 'Turno ya llamado',
+            'already' => true
+        ]);
+        $db->close();
+        exit;
+    }
+
+    // El turno debe estar en estado registrado para poder llamarse
+    if ($turno['estado'] !== 'registrado') {
+        http_response_code(400);
+        echo json_encode(['success' => false, 'message' => 'El turno no puede ser llamado desde su estado actual']);
         exit;
     }
 

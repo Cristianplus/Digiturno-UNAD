@@ -49,21 +49,27 @@ if ($esDependencia) {
 
     <div class="container">
         <?php if ($esAdmin): ?>
-        <!-- Selector de Dependencia (solo admin) -->
+        <!-- Selector de Dependencia (solo admin): listado completo visible a la vez -->
         <div class="card mb-2" id="card-seleccion">
             <div class="card-header">
                 <h2>Seleccionar Dependencia</h2>
             </div>
             <div class="card-body">
-                <div class="form-group">
-                    <label>Dependencia Asignada <span class="required">*</span></label>
-                    <select class="form-control" id="sel-dependencia">
-                        <option value="">Seleccione su dependencia...</option>
-                    </select>
+                <p class="selector-hint">Seleccione la dependencia que desea atender</p>
+                <div class="deps-grid" id="deps-grid">
+                    <div class="empty-state">
+                        <p>Cargando dependencias...</p>
+                    </div>
                 </div>
-                <button class="btn btn-primary" id="btn-ingresar" onclick="ingresarDependencia()">
-                    Ingresar al Panel
-                </button>
+
+                <!-- Escuelas de ESC (se muestran al seleccionar ESC) -->
+                <div class="escuelas-block hidden" id="escuelas-block">
+                    <div class="escuelas-header">
+                        <button class="btn btn-sm btn-outline" onclick="volverADependencias()">&larr; Volver a Dependencias</button>
+                        <h3>Seleccionar Escuela</h3>
+                    </div>
+                    <div class="escs-grid" id="escs-grid"></div>
+                </div>
             </div>
         </div>
         <?php endif; ?>

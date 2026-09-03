@@ -13,10 +13,19 @@ try {
 
     $db = getDB();
 
+    $hoy = date('Y-m-d');
+
     $results = $db->query("SELECT id, nombre, codigo, descripcion, usaListas FROM dependencias WHERE activa = 1 ORDER BY nombre");
     $dependencias = [];
 
     while ($row = $results->fetchArray(SQLITE3_ASSOC)) {
+        // Personas en espera (turnos registrados, aun sin llamar) hoy para esta dependencia
+        $row['en_espera'] = $db->querySingle(
+            "SELECT COUNT(*) FROM turnos
+             WHERE dependencia_id = " . intval($row['id']) . "
+               AND date(fecha_ingreso) = '$hoy'
+               AND estado = 'registrado'"
+        );
         $dependencias[] = $row;
     }
 
