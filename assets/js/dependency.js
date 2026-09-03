@@ -78,27 +78,27 @@ async function cargarDependencias() {
                 return;
             }
 
-            data.dependencias.forEach(dep => {
+            data.dependencias.forEach(dependencia => {
                 // La unica dependencia con sub-listado (escuelas) es ESC
-                const esEsc = dep.codigo.toUpperCase() === 'ESC';
+                const esEsc = dependencia.codigo.toUpperCase() === 'ESC';
                 const card = document.createElement('button');
                 card.type = 'button';
                 card.className = 'dep-card' + (esEsc ? ' dep-card-esc' : '');
-                card.dataset.id = dep.id;
-                card.dataset.codigo = dep.codigo;
-                card.dataset.nombre = dep.nombre;
+                card.dataset.id = dependencia.id;
+                card.dataset.codigo = dependencia.codigo;
+                card.dataset.nombre = dependencia.nombre;
 
-                const enEspera = parseInt(dep.en_espera || 0, 10);
+                const enEspera = parseInt(dependencia.en_espera || 0, 10);
                 const esperaHtml = enEspera > 0
                     ? `<span class="dep-waiting">&#128100; ${enEspera} en espera</span>`
                     : '';
 
                 card.innerHTML = `
-                    <span class="dep-card-codigo">${dep.codigo}</span>
-                    <span class="dep-card-nombre">${dep.nombre}</span>
+                    <span class="dep-card-codigo">${dependencia.codigo}</span>
+                    <span class="dep-card-nombre">${dependencia.nombre}</span>
                     ${esperaHtml}
                 `;
-                card.addEventListener('click', () => seleccionarDependencia(dep));
+                card.addEventListener('click', () => seleccionarDependencia(dependencia));
                 grid.appendChild(card);
             });
 
@@ -137,21 +137,21 @@ async function actualizarEsperaGrid() {
         const data = await resp.json();
         if (!data.success) return;
 
-        data.dependencias.forEach(dep => {
-            const enEspera = parseInt(dep.en_espera || 0, 10);
-            const card = grid.querySelector(`.dep-card[data-id="${dep.id}"]`);
+        data.dependencias.forEach(dependencia => {
+            const enEspera = parseInt(dependencia.en_espera || 0, 10);
+            const card = grid.querySelector(`.dep-card[data-id="${dependencia.id}"]`);
             if (!card) return;
 
-            let ell = card.querySelector('.dep-waiting');
+            let indicadorEspera = card.querySelector('.dep-waiting');
             if (enEspera > 0) {
-                if (!ell) {
-                    ell = document.createElement('span');
-                    ell.className = 'dep-waiting';
-                    card.appendChild(ell);
+                if (!indicadorEspera) {
+                    indicadorEspera = document.createElement('span');
+                    indicadorEspera.className = 'dep-waiting';
+                    card.appendChild(indicadorEspera);
                 }
-                ell.innerHTML = `&#128100; ${enEspera} en espera`;
-            } else if (ell) {
-                ell.remove();
+                indicadorEspera.innerHTML = `&#128100; ${enEspera} en espera`;
+            } else if (indicadorEspera) {
+                indicadorEspera.remove();
             }
         });
     } catch (error) {
@@ -160,21 +160,21 @@ async function actualizarEsperaGrid() {
 }
 
 // Seleccionar una dependencia del grid
-function seleccionarDependencia(dep) {
-    if (dep.codigo.toUpperCase() === 'ESC') {
+function seleccionarDependencia(dependencia) {
+    if (dependencia.codigo.toUpperCase() === 'ESC') {
         // ESC: desplegar las escuelas almacenadas
-        cargarEscuelas(dep);
+        cargarEscuelas(dependencia);
         return;
     }
-    ingresarAlPanel(dep);
+    ingresarAlPanel(dependencia);
 }
 
 // Cargar y mostrar las escuelas de ESC
-async function cargarEscuelas(dep) {
-    escActual = dep;
+async function cargarEscuelas(dependencia) {
+    escActual = dependencia;
 
     try {
-        const resp = await fetch(`${API_BASE}/get_lists.php?dependencia_id=${dep.id}`);
+        const resp = await fetch(`${API_BASE}/get_lists.php?dependencia_id=${dependencia.id}`);
         const data = await resp.json();
 
         const bloque = document.getElementById('escuelas-block');
@@ -182,24 +182,24 @@ async function cargarEscuelas(dep) {
         gridEsc.innerHTML = '';
 
         if (data.success && data.listas && data.listas.length > 0) {
-            data.listas.forEach(esc => {
+            data.listas.forEach(escuela => {
                 const card = document.createElement('button');
                 card.type = 'button';
                 card.className = 'escs-card';
-                card.dataset.id = esc.id;
-                card.dataset.nombre = esc.nombre;
+                card.dataset.id = escuela.id;
+                card.dataset.nombre = escuela.nombre;
 
-                const enEspera = parseInt(esc.en_espera || 0, 10);
+                const enEspera = parseInt(escuela.en_espera || 0, 10);
                 const esperaHtml = enEspera > 0
                     ? `<span class="dep-waiting">&#128100; ${enEspera} en espera</span>`
                     : '';
 
                 card.innerHTML = `
-                    <span class="escs-card-codigo">${esc.codigo || ''}</span>
-                    <span class="escs-card-nombre">${esc.nombre}</span>
+                    <span class="escs-card-codigo">${escuela.codigo || ''}</span>
+                    <span class="escs-card-nombre">${escuela.nombre}</span>
                     ${esperaHtml}
                 `;
-                card.addEventListener('click', () => ingresarAlPanel(dep, esc));
+                card.addEventListener('click', () => ingresarAlPanel(dependencia, escuela));
                 gridEsc.appendChild(card);
             });
         } else {
@@ -252,21 +252,21 @@ async function actualizarEsperaEscuelas() {
         const data = await resp.json();
         if (!data.success) return;
 
-        data.listas.forEach(esc => {
-            const enEspera = parseInt(esc.en_espera || 0, 10);
-            const card = gridEsc.querySelector(`.escs-card[data-id="${esc.id}"]`);
+        data.listas.forEach(escuela => {
+            const enEspera = parseInt(escuela.en_espera || 0, 10);
+            const card = gridEsc.querySelector(`.escs-card[data-id="${escuela.id}"]`);
             if (!card) return;
 
-            let ell = card.querySelector('.dep-waiting');
+            let indicadorEspera = card.querySelector('.dep-waiting');
             if (enEspera > 0) {
-                if (!ell) {
-                    ell = document.createElement('span');
-                    ell.className = 'dep-waiting';
-                    card.appendChild(ell);
+                if (!indicadorEspera) {
+                    indicadorEspera = document.createElement('span');
+                    indicadorEspera.className = 'dep-waiting';
+                    card.appendChild(indicadorEspera);
                 }
-                ell.innerHTML = `&#128100; ${enEspera} en espera`;
-            } else if (ell) {
-                ell.remove();
+                indicadorEspera.innerHTML = `&#128100; ${enEspera} en espera`;
+            } else if (indicadorEspera) {
+                indicadorEspera.remove();
             }
         });
     } catch (error) {
@@ -275,11 +275,11 @@ async function actualizarEsperaEscuelas() {
 }
 
 // Ingresar al panel de la dependencia (opcionalmente con una escuela seleccionada)
-function ingresarAlPanel(dep, escuela) {
-    dependenciaActual = dep.id;
-    sessionStorage.setItem('dependencia_id', dep.id);
+function ingresarAlPanel(dependencia, escuela) {
+    dependenciaActual = dependencia.id;
+    sessionStorage.setItem('dependencia_id', dependencia.id);
 
-    const depTexto = `${dep.codigo} - ${dep.nombre}`;
+    const depTexto = `${dependencia.codigo} - ${dependencia.nombre}`;
     document.getElementById('dep-badge').textContent = depTexto;
     document.getElementById('dep-titulo').textContent =
         escuela ? `Panel - ESC - ${escuela.nombre}` : `Panel - ${depTexto}`;
@@ -349,10 +349,10 @@ function renderPendientes(pendientes) {
         `;
     } else {
         html = '';
-        pendientes.forEach(t => {
-            const esRegistrado = t.estado === 'registrado';
-            const esLlamado = t.estado === 'llamado' || t.estado === 'en_atencion';
-            const detalle = t.lista_codigo ? `${t.lista_codigo} - ${t.lista_nombre}` : t.tipo_visitante || 'visitante';
+        pendientes.forEach(turno => {
+            const esRegistrado = turno.estado === 'registrado';
+            const esLlamado = turno.estado === 'llamado' || turno.estado === 'en_atencion';
+            const detalle = turno.lista_codigo ? `${turno.lista_codigo} - ${turno.lista_nombre}` : turno.tipo_visitante || 'visitante';
 
             // Botones segun estado:
             // - registrado (en cola): solo "Llamar"
@@ -362,17 +362,17 @@ function renderPendientes(pendientes) {
             let acciones = '';
             if (esRegistrado) {
                 acciones = `
-                    <button class="btn btn-sm btn-warning" data-accion="llamar" data-id="${t.id}">
+                    <button class="btn btn-sm btn-warning" data-accion="llamar" data-id="${turno.id}">
                         Llamar
                     </button>
                 `;
             } else {
                 acciones = `
-                    <button class="btn btn-sm btn-danger" data-accion="finalizar" data-id="${t.id}"
-                            data-numero="${t.numero_turno}" data-nombre="${t.nombres} ${t.apellidos}">
+                    <button class="btn btn-sm btn-danger" data-accion="finalizar" data-id="${turno.id}"
+                            data-numero="${turno.numero_turno}" data-nombre="${turno.nombres} ${turno.apellidos}">
                         Finalizar
                     </button>
-                    <button class="btn btn-sm btn-outline" data-accion="noasistio" data-id="${t.id}">
+                    <button class="btn btn-sm btn-outline" data-accion="noasistio" data-id="${turno.id}">
                         No Asistio
                     </button>
                 `;
@@ -381,14 +381,14 @@ function renderPendientes(pendientes) {
             html += `
                 <div class="turno-card ${esLlamado ? 'turno-urgente' : ''}">
                     <div class="turno-card-info">
-                        <div class="turno-card-numero">${t.numero_turno}</div>
-                        <div class="turno-card-nombre">${t.nombres} ${t.apellidos}</div>
+                        <div class="turno-card-numero">${turno.numero_turno}</div>
+                        <div class="turno-card-nombre">${turno.nombres} ${turno.apellidos}</div>
                         <div class="turno-card-meta">
-                            C.C. ${t.cedula} | ${detalle}
+                            C.C. ${turno.cedula} | ${detalle}
                         </div>
                         <div class="turno-card-meta">
-                            Llegada: ${t.fecha_ingreso || '-'}
-                            ${t.fecha_llamada ? ' | Llamado: ' + t.fecha_llamada : ''}
+                            Llegada: ${turno.fecha_ingreso || '-'}
+                            ${turno.fecha_llamada ? ' | Llamado: ' + turno.fecha_llamada : ''}
                         </div>
                     </div>
                     <div class="turno-card-actions">
@@ -436,20 +436,20 @@ function renderHistorial(atendidos) {
                     <tbody>
         `;
 
-        atendidos.forEach(t => {
-            const badge = t.estado === 'finalizado'
+        atendidos.forEach(turno => {
+            const badge = turno.estado === 'finalizado'
                 ? '<span class="badge badge-finalizado">Atendido</span>'
                 : '<span class="badge badge-no_asistio">No Asistio</span>';
 
-            const horaFin = t.fecha_fin ? t.fecha_fin.split(' ')[1] || '-' : '-';
+            const horaFin = turno.fecha_fin ? turno.fecha_fin.split(' ')[1] || '-' : '-';
 
             html += `
                 <tr>
-                    <td><strong>${t.numero_turno}</strong></td>
-                    <td>${t.nombres} ${t.apellidos}</td>
-                    <td>${t.cedula}</td>
+                    <td><strong>${turno.numero_turno}</strong></td>
+                    <td>${turno.nombres} ${turno.apellidos}</td>
+                    <td>${turno.cedula}</td>
                     <td>${badge}</td>
-                    <td>${t.fecha_ingreso ? t.fecha_ingreso.split(' ')[1] || '-' : '-'}</td>
+                    <td>${turno.fecha_ingreso ? turno.fecha_ingreso.split(' ')[1] || '-' : '-'}</td>
                     <td>${horaFin}</td>
                 </tr>
             `;
@@ -575,8 +575,8 @@ async function marcarNoAsistio(turnoId, boton) {
 
 // Cambiar tab
 function cambiarTab(btn) {
-    document.querySelectorAll('.dependency-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.dependency-tab').forEach(tab => tab.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(contenido => contenido.classList.remove('active'));
 
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');

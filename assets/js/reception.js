@@ -65,12 +65,12 @@ async function cargarDependencias() {
 
         const data = res.data;
         const select = document.getElementById('dependencia_id');
-        data.dependencias.forEach(dep => {
+        data.dependencias.forEach(dependencia => {
             const opt = document.createElement('option');
-            opt.value = dep.id;
-            opt.textContent = `${dep.codigo} - ${dep.nombre}`;
-            opt.dataset.usaListas = dep.usaListas;
-            opt.dataset.codigo = dep.codigo;
+            opt.value = dependencia.id;
+            opt.textContent = `${dependencia.codigo} - ${dependencia.nombre}`;
+            opt.dataset.usaListas = dependencia.usaListas;
+            opt.dataset.codigo = dependencia.codigo;
             select.appendChild(opt);
         });
 
@@ -97,10 +97,10 @@ async function onCambioDependencia() {
         try {
             const res = await fetchJSON(`${API_BASE}/get_lists.php?dependencia_id=${opt.value}`);
             if (res && res.data && res.data.success) {
-                res.data.listas.forEach(l => {
+                res.data.listas.forEach(escuela => {
                     const op = document.createElement('option');
-                    op.value = l.id;
-                    op.textContent = `${l.codigo} - ${l.nombre}`;
+                    op.value = escuela.id;
+                    op.textContent = `${escuela.codigo} - ${escuela.nombre}`;
                     selectEscuela.appendChild(op);
                 });
             }
@@ -278,19 +278,19 @@ async function cargarHistorial(silent = false) {
                         <tbody>
             `;
 
-            data.turnos.forEach(t => {
-                const nombre = `${t.nombres} ${t.apellidos}`;
-                const estadoBadge = getBadgeEstado(t.estado);
-                const hora = t.fecha_ingreso ? t.fecha_ingreso.split(' ')[1] || '' : '';
-                const detalleDep = t.lista_codigo
-                    ? `${t.dependencia_codigo} <small style="color:var(--unad-text-light)">(${t.lista_codigo})</small>`
-                    : `${t.dependencia_codigo}`;
+            data.turnos.forEach(turno => {
+                const nombre = `${turno.nombres} ${turno.apellidos}`;
+                const estadoBadge = getBadgeEstado(turno.estado);
+                const hora = turno.fecha_ingreso ? turno.fecha_ingreso.split(' ')[1] || '' : '';
+                const detalleDep = turno.lista_codigo
+                    ? `${turno.dependencia_codigo} <small style="color:var(--unad-text-light)">(${turno.lista_codigo})</small>`
+                    : `${turno.dependencia_codigo}`;
 
                 html += `
                     <tr>
-                        <td><strong>${t.numero_turno}</strong></td>
+                        <td><strong>${turno.numero_turno}</strong></td>
                         <td>${nombre}</td>
-                        <td>${t.cedula}</td>
+                        <td>${turno.cedula}</td>
                         <td>${detalleDep}</td>
                         <td>${estadoBadge}</td>
                         <td>${hora}</td>

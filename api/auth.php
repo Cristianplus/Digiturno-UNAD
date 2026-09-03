@@ -42,9 +42,9 @@ function sesionUserId() {
 /**
  * Inicia la sesion con el rol y datos asociados.
  */
-function iniciarSesion($role, $data = []) {
+function iniciarSesion($rol, $data = []) {
     session_regenerate_id(true);
-    $_SESSION['role'] = $role;
+    $_SESSION['role'] = $rol;
     $_SESSION['user_id'] = $data['user_id'] ?? null;
     $_SESSION['username'] = $data['username'] ?? null;
     $_SESSION['usuario_nombre'] = $data['usuario_nombre'] ?? null;
@@ -95,11 +95,11 @@ function requierePerfilApi(array $rolesPermitidos) {
 /**
  * Destino segun el rol (para redirigir desde login.php).
  */
-function destinoSegunRol($role) {
-    if ($role === 'recepcion' || $role === 'admin') {
+function destinoSegunRol($rol) {
+    if ($rol === 'recepcion' || $rol === 'admin') {
         return 'index.php';
     }
-    if ($role === 'dependencia') {
+    if ($rol === 'dependencia') {
         return 'dependencia.php';
     }
     return 'login.php';

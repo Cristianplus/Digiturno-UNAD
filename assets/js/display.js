@@ -73,20 +73,20 @@ function actualizarEnAtencion(lista) {
 
     // Todos los turnos en atencion con el mismo llamativo y tamano
     let html = '';
-    lista.forEach(t => {
-        let dep;
+    lista.forEach(turno => {
+        let textoDependencia;
         // Para la dependencia ESC (escuela) mostramos la escuela junto al codigo
-        if (t.dependencia_codigo === 'ESC' && t.lista_nombre) {
-            dep = t.dependencia_codigo + ' - ' + t.lista_nombre;
+        if (turno.dependencia_codigo === 'ESC' && turno.lista_nombre) {
+            textoDependencia = turno.dependencia_codigo + ' - ' + turno.lista_nombre;
         } else {
-            dep = t.dependencia_codigo + ' - ' + t.dependencia_nombre;
+            textoDependencia = turno.dependencia_codigo + ' - ' + turno.dependencia_nombre;
         }
         html += `
             <div class="turno-actual">
                 <div class="turno-label">Turno en Atencion</div>
-                <div class="turno-numero">${t.numero_turno}</div>
-                <div class="turno-dependencia">${dep}</div>
-                <div class="turno-nombre">${t.nombres} ${t.apellidos}</div>
+                <div class="turno-numero">${turno.numero_turno}</div>
+                <div class="turno-dependencia">${textoDependencia}</div>
+                <div class="turno-nombre">${turno.nombres} ${turno.apellidos}</div>
             </div>
         `;
     });
@@ -115,25 +115,25 @@ function actualizarProximos(proximos) {
                 <div>Dependencia</div>
             </div>
     `;
-    proximos.forEach(p => {
-        html += crearTurnoItem(p);
+    proximos.forEach(proximoTurno => {
+        html += crearTurnoItem(proximoTurno);
     });
     html += '</div>';
     container.innerHTML = html;
 }
 
 function crearTurnoItem(turno) {
-    let dep = turno.dependencia_nombre;
+    let textoDependencia;
     // Para la dependencia ESC (escuela) mostramos la escuela en lugar del nombre
     if (turno.dependencia_codigo === 'ESC' && turno.lista_nombre) {
-        dep = turno.lista_nombre + ' (' + turno.dependencia_codigo + ')';
+        textoDependencia = turno.lista_nombre + ' (' + turno.dependencia_codigo + ')';
     } else {
-        dep = turno.dependencia_nombre + ' (' + turno.dependencia_codigo + ')';
+        textoDependencia = turno.dependencia_nombre + ' (' + turno.dependencia_codigo + ')';
     }
     return `
         <div class="proximos-row">
             <div class="proximos-num">${turno.numero_turno}</div>
-            <div class="proximos-dep">${dep}</div>
+            <div class="proximos-dep">${textoDependencia}</div>
         </div>
     `;
 }

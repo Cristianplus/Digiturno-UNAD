@@ -31,9 +31,9 @@ function getDB() {
  * Verifica si una columna existe en una tabla.
  */
 function columnaExiste($db, $tabla, $columna) {
-    $cols = $db->query("PRAGMA table_info($tabla)");
-    while ($c = $cols->fetchArray(SQLITE3_ASSOC)) {
-        if ($c['name'] === $columna) {
+    $columnas = $db->query("PRAGMA table_info($tabla)");
+    while ($fila = $columnas->fetchArray(SQLITE3_ASSOC)) {
+        if ($fila['name'] === $columna) {
             return true;
         }
     }
@@ -44,10 +44,10 @@ function columnaExiste($db, $tabla, $columna) {
  * Verifica si una tabla existe.
  */
 function tablaExiste($db, $tabla) {
-    $r = $db->querySingle(
+    $existe = $db->querySingle(
         "SELECT name FROM sqlite_master WHERE type='table' AND name='$tabla'"
     );
-    return !empty($r);
+    return !empty($existe);
 }
 
 /**
@@ -178,8 +178,8 @@ function initDB() {
         $nuevosCodigos = ['RYC', 'VISAE', 'BIU', 'ESC', 'STCV', 'BIUN', 'SAI'];
         $placeholders = implode(',', array_fill(0, count($nuevosCodigos), '?'));
         $stmt = $db->prepare("DELETE FROM dependencias WHERE codigo NOT IN ($placeholders)");
-        foreach ($nuevosCodigos as $i => $codigo) {
-            $stmt->bindValue($i + 1, $codigo, SQLITE3_TEXT);
+        foreach ($nuevosCodigos as $indice => $codigo) {
+            $stmt->bindValue($indice + 1, $codigo, SQLITE3_TEXT);
         }
         $stmt->execute();
 

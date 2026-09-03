@@ -134,31 +134,31 @@ async function cargarUsuarios() {
                     <tbody>
         `;
 
-        usuarios.forEach(u => {
+        usuarios.forEach(usuario => {
             const nombre = $escapeHtml(
-                (u.nombre || '') + ((u.apellido || '').trim() ? ' ' + u.apellido : '')
+                (usuario.nombre || '') + ((usuario.apellido || '').trim() ? ' ' + usuario.apellido : '')
             );
-            const dep = (u.dependencia_codigo
-                ? `${u.dependencia_codigo} - ${u.dependencia_nombre}`
-                : '-') + (u.lista_codigo
-                    ? ` <small style="color:var(--unad-text-light)">(${u.lista_codigo})</small>`
+            const textoDependencia = (usuario.dependencia_codigo
+                ? `${usuario.dependencia_codigo} - ${usuario.dependencia_nombre}`
+                : '-') + (usuario.lista_codigo
+                    ? ` <small style="color:var(--unad-text-light)">(${usuario.lista_codigo})</small>`
                     : '');
-            const estado = parseInt(u.activo) === 1
+            const estado = parseInt(usuario.activo) === 1
                 ? '<span class="user-estado activo">Activo</span>'
                 : '<span class="user-estado inactivo">Inactivo</span>';
-            const rol = u.rol === 'admin' ? 'Administrador' : 'Dependencia';
-            const acciones = u.rol === 'dependencia'
+            const rol = usuario.rol === 'admin' ? 'Administrador' : 'Dependencia';
+            const acciones = usuario.rol === 'dependencia'
                 ? `\
-                    <button class="btn btn-sm btn-outline" onclick="abrirModalEditar(${u.id})">Editar</button>\
-                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${u.id})">Eliminar</button>`
+                    <button class="btn btn-sm btn-outline" onclick="abrirModalEditar(${usuario.id})">Editar</button>\
+                    <button class="btn btn-sm btn-danger" onclick="eliminarUsuario(${usuario.id})">Eliminar</button>`
                 : '<small style="color:var(--unad-text-light)">-</small>';
 
             html += `
                 <tr>
                     <td><strong>${nombre}</strong></td>
-                    <td>${$escapeHtml(u.usuario)}</td>
+                    <td>${$escapeHtml(usuario.usuario)}</td>
                     <td>${rol}</td>
-                    <td>${dep}</td>
+                    <td>${textoDependencia}</td>
                     <td>${estado}</td>
                     <td><div class="config-table-actions">${acciones}</div></td>
                 </tr>
@@ -208,20 +208,20 @@ async function cargarEscuelasFuncionario(listaSeleccionada, preseleccion = true)
     const select = document.getElementById('usr-dependencia');
     const grupoEscuela = document.getElementById('grupo-escuela-funcionario');
     const selectEscuela = document.getElementById('usr-lista');
-    const opt = select.options[select.selectedIndex];
+    const opcionSeleccionada = select.options[select.selectedIndex];
 
     selectEscuela.innerHTML = '<option value="">Seleccione la escuela...</option>';
 
-    if (opt && opt.dataset.usaListas === '1') {
+    if (opcionSeleccionada && opcionSeleccionada.dataset.usaListas === '1') {
         grupoEscuela.classList.remove('hidden');
         try {
-            const res = await fetchJSON(`${API_BASE}/get_lists.php?dependencia_id=${opt.value}`);
+            const res = await fetchJSON(`${API_BASE}/get_lists.php?dependencia_id=${opcionSeleccionada.value}`);
             if (res && res.data && res.data.success) {
-                res.data.listas.forEach(l => {
-                    const op = document.createElement('option');
-                    op.value = l.id;
-                    op.textContent = `${l.codigo} - ${l.nombre}`;
-                    selectEscuela.appendChild(op);
+                res.data.listas.forEach(lista => {
+                    const opcionNueva = document.createElement('option');
+                    opcionNueva.value = lista.id;
+                    opcionNueva.textContent = `${lista.codigo} - ${lista.nombre}`;
+                    selectEscuela.appendChild(opcionNueva);
                 });
                 if (preseleccion && listaSeleccionada) {
                     selectEscuela.value = String(listaSeleccionada);
@@ -238,11 +238,11 @@ async function cargarEscuelasFuncionario(listaSeleccionada, preseleccion = true)
 
 // Al editar: si el usuario pertenece a una dependencia con listas (ESC),
 // carga las escuelas y preselecciona la guardada.
-async function configurarEscuelaFuncionario(u) {
+async function configurarEscuelaFuncionario(usuario) {
     const select = document.getElementById('usr-dependencia');
-    const opt = select.options[select.selectedIndex];
-    if (opt && opt.dataset.usaListas === '1') {
-        await cargarEscuelasFuncionario(u.lista_id, true);
+    const opcionSeleccionada = select.options[select.selectedIndex];
+    if (opcionSeleccionada && opcionSeleccionada.dataset.usaListas === '1') {
+        await cargarEscuelasFuncionario(usuario.lista_id, true);
     } else {
         document.getElementById('grupo-escuela-funcionario').classList.add('hidden');
         document.getElementById('usr-lista').innerHTML = '<option value="">Seleccione la escuela...</option>';
@@ -277,16 +277,16 @@ function abrirModalEditar(id) {
     fetchJSON(`${API_BASE}/get_usuarios.php`).then(res => {
         const data = res && res.data ? res.data : null;
         if (!data || !data.success) return;
-        const u = (data.usuarios || []).find(x => parseInt(x.id) === parseInt(id));
-        if (!u) {
+        const usuario = (data.usuarios || []).find(buscado => parseInt(buscado.id) === parseInt(id));
+        if (!usuario) {
             mostrarToast('Usuario no encontrado', 'error');
             return;
         }
 
         // Separar nombre y apellido. Si no hay apellido almacenado (dato legacy),
         // se intenta extraer del nombre completo (ej. "LUIS GARCIA").
-        let nombre = u.nombre || '';
-        let apellido = (u.apellido || '').trim();
+        let nombre = usuario.nombre || '';
+        let apellido = (usuario.apellido || '').trim();
         if (!apellido) {
             const partes = nombre.trim().split(/\s+/);
             if (partes.length > 1) {
@@ -298,14 +298,14 @@ function abrirModalEditar(id) {
         document.getElementById('usuario-modal-titulo').textContent = 'Editar Funcionario';
         document.getElementById('usr-nombre').value = nombre;
         document.getElementById('usr-apellido').value = apellido;
-        usuarioExistente = u.usuario || '';
+        usuarioExistente = usuario.usuario || '';
         document.getElementById('usr-usuario').value = usuarioExistente;
         document.getElementById('usr-password').value = '';
         document.getElementById('usr-pass-label').innerHTML = 'Nueva contraseña (opcional)';
         document.getElementById('usr-password').placeholder = 'Deje vacio para mantener la actual';
-        document.getElementById('usr-dependencia').value = u.dependencia_id || '';
-        configurarEscuelaFuncionario(u);
-        document.getElementById('usr-activo').checked = parseInt(u.activo) === 1;
+        document.getElementById('usr-dependencia').value = usuario.dependencia_id || '';
+        configurarEscuelaFuncionario(usuario);
+        document.getElementById('usr-activo').checked = parseInt(usuario.activo) === 1;
         document.getElementById('usr-activo-grupo').classList.remove('hidden');
         limpiarErrorModal();
         document.getElementById('modal-usuario').classList.add('active');

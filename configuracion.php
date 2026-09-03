@@ -4,8 +4,7 @@
  * Acceso: solo Administrador.
  */
 require_once __DIR__ . '/api/auth.php';
-$rol = requierePerfil(['admin']);
-$esAdmin = true;
+requierePerfil(['admin']);
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -47,7 +46,6 @@ $esAdmin = true;
                     <button class="btn btn-sm btn-warning" onclick="abrirModalNuevo()">+ Nuevo Funcionario</button>
                 </div>
                 <div class="card-body">
-                    <div id="alert-container"></div>
                     <div id="usuarios-container">
                         <div class="loading">
                             <div class="spinner"></div>

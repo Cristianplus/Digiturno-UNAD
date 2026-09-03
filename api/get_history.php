@@ -11,7 +11,7 @@ require_once __DIR__ . '/auth.php';
 header('Content-Type: application/json');
 
 // Historial visible desde Recepcion o Administrador.
-$rol = requierePerfilApi(['recepcion', 'admin']);
+requierePerfilApi(['recepcion', 'admin']);
 
 try {
     ensureStructure();
