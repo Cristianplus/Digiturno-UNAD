@@ -79,7 +79,6 @@ if ($esDependencia) {
             <div class="dependency-header">
                 <h2 id="dep-titulo">Panel de Atencion</h2>
                 <div class="d-flex gap-1">
-                    <button class="btn btn-sm btn-outline" onclick="refrescarTurnos()">Refrescar</button>
                     <span class="header-badge" id="dep-hora"></span>
                 </div>
             </div>

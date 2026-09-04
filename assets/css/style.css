@@ -73,6 +73,7 @@ body.display-screen {
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+    position: relative;
 }
 
 .header-brand {
@@ -110,6 +111,16 @@ body.display-screen {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+/* Centrar la insignia de perfil dentro de la barra superior sin afectar la
+   disposicion flex de la marca (izquierda) ni la navegacion (derecha). */
+.header-inner .header-badge {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    margin-left: 0;
 }
 
 .header-nav {
