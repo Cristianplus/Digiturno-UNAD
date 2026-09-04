@@ -20,7 +20,7 @@ $esAdmin = ($rol === 'admin');
     <header class="header">
         <div class="header-inner">
             <div class="header-brand">
-                <img class="header-logo" src="assets/img/Logo_unad_color.png" alt="Logo UNAD">
+                <img class="header-logo" src="assets/img/logo-unad-header.png" alt="Logo UNAD">
                 <div class="header-title">
                     <h1>DigiTurno UNAD</h1>
                     <p>Sistema de Gestion de Turnos - CEAD Acacias</p>

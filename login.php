@@ -23,7 +23,7 @@ if ($rolActivo) {
 <body class="profiles-screen">
 
     <div class="profiles-header">
-        <img class="header-logo" src="assets/img/Logo_unad_color.png" alt="Logo UNAD">
+        <img class="logo_login" src="assets/img/Logo_unad_color.png" alt="Logo UNAD">
         <h1>DigiTurno UNAD</h1>
         <p>Sistema de Gestion de Turnos - CEAD Acacias</p>
     </div>

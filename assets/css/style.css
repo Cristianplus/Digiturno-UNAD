@@ -55,7 +55,7 @@ body.display-screen {
 
 /* === HEADER / BARRA SUPERIOR === */
 .header {
-    background: linear-gradient(135deg, var(--unad-blue-dark) 0%, var(--unad-blue) 100%);
+    background: linear-gradient(315deg, var(--unad-blue-dark) 0%, var(--unad-blue) 100%);
     color: var(--unad-white);
     padding: 0;
     box-shadow: var(--unad-shadow-lg);
@@ -68,7 +68,7 @@ body.display-screen {
 .header-inner {
     max-width: 1400px;
     margin: 0 auto;
-    padding: 12px 24px;
+    padding: -50px 20px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -83,10 +83,11 @@ body.display-screen {
 }
 
 .header-logo {
-    width: 75px;
-    height: 75px;
+    width: 120px;
+    height: 100px;
     object-fit: contain;
     flex-shrink: 0;
+    margin: -15px 10px;
 }
 
 .header-title h1 {
@@ -106,7 +107,7 @@ body.display-screen {
     background: var(--unad-yellow);
     color: var(--unad-blue-dark);
     padding: 6px 14px;
-    border-radius: 20px;
+    border-radius: 10px;
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
@@ -1271,9 +1272,19 @@ table tbody tr:nth-child(even):hover {
 }
 
 .profiles-header .header-logo {
-    width: 197px;
-    height: 197px;
-    margin: 0 auto 16px;
+    width: 230px;
+    height: 230px;
+    margin: 0 auto;
+    margin-top: -60px;
+    margin-bottom: -30px;
+}
+
+.logo_login {
+    width: 290px;
+    height: 220px;
+    margin: 0 auto;
+    margin-top: -30px;
+    margin-bottom: -20px;
 }
 
 .profiles-header h1 {
