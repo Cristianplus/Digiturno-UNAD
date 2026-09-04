@@ -25,7 +25,7 @@ requierePerfil(['admin']);
                     <p>Configuracion del Sistema</p>
                 </div>
             </div>
-            <span class="header-badge">Admin <?= htmlspecialchars(sesionUsuarioNombre() ?: '') ?></span>
+            <span class="header-badge"> <?= htmlspecialchars(sesionUsuarioNombre() ?: 'Administrador') ?></span>
             <nav class="header-nav">
                 <a href="index.php">Recepcion</a>
                 <a href="pantalla.php" target="_blank">Pantalla</a>

@@ -26,7 +26,7 @@ $esAdmin = ($rol === 'admin');
                     <p>Sistema de Gestion de Turnos - CEAD Acacias</p>
                 </div>
             </div>
-            <span class="header-badge"><?= $esAdmin ? 'Admin' : 'Recepcion' ?> <?= htmlspecialchars(sesionUsuarioNombre() ?: '') ?></span>
+            <span class="header-badge"> <?= htmlspecialchars(sesionUsuarioNombre() ?: '') ?></span>
             <nav class="header-nav">
                 <a href="index.php" class="active">Registrar</a>
                 <a href="pantalla.php" target="_blank">Pantalla</a>
