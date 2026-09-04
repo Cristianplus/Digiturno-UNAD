@@ -104,7 +104,6 @@ $esAdmin = ($rol === 'admin');
                 <div class="card">
                     <div class="card-header">
                         <h2>Turnos Registrados Hoy <span id="historial-fecha" style="font-size:0.85rem; color:var(--unad-text-light); font-weight:500;"></span></h2>
-                        <button class="btn btn-sm btn-warning" onclick="cargarHistorial()">Actualizar</button>
                     </div>
                     <div class="card-body">
                         <div id="historial-container">
