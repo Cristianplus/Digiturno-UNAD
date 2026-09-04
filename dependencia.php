@@ -34,7 +34,7 @@ if ($esDependencia) {
                     <p>Panel de Dependencia</p>
                 </div>
             </div>
-            <span class="header-badge" id="dep-badge"><?= $esAdmin ? 'Admin' : 'Dependencia' ?></span>
+            <span class="header-badge" id="dep-badge"><?= $esAdmin ? 'Administrador' : 'Dependencia' ?></span>
             <nav class="header-nav">
                 <?php if ($esAdmin): ?>
                 <a href="index.php">Recepcion</a>

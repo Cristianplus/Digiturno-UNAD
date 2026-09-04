@@ -76,7 +76,7 @@ requierePerfil(['admin']);
                             </button>
                         </div>
                         <div class="caps-lock-slot">
-                            <span class="caps-lock-text" id="caps-admin-actual" style="display:none">&#8682; Bloq Mayus activado</span>
+                            <span class="caps-lock-text" id="caps-admin-actual" style="display:none">Bloq Mayus activado</span>
                         </div>
                     </div>
                     <div class="form-group">
@@ -89,7 +89,7 @@ requierePerfil(['admin']);
                             </button>
                         </div>
                         <div class="caps-lock-slot">
-                            <span class="caps-lock-text" id="caps-admin-nueva" style="display:none">&#8682; Bloq Mayus activado</span>
+                            <span class="caps-lock-text" id="caps-admin-nueva" style="display:none">Bloq Mayus activado</span>
                         </div>
                     </div>
                     <button class="btn btn-primary btn-block" onclick="cambiarPasswordAdmin()">Cambiar Contraseña</button>
@@ -119,7 +119,6 @@ requierePerfil(['admin']);
                 <div class="form-group">
                     <label>Usuario <span class="required">*</span></label>
                     <input type="text" class="form-control" id="usr-usuario" placeholder="Se genera automaticamente" autocomplete="off" spellcheck="false" readonly>
-                    <small style="color:var(--unad-text-light);">Se genera automaticamente: nombre+apellido+número (ej. luisperez0001)</small>
                 </div>
                 <div class="form-group">
                     <label id="usr-pass-label">Contraseña <span class="required">*</span></label>
@@ -131,7 +130,7 @@ requierePerfil(['admin']);
                         </button>
                     </div>
                     <div class="caps-lock-slot">
-                        <span class="caps-lock-text" id="caps-usuario" style="display:none">&#8682; Bloq Mayus activado</span>
+                        <span class="caps-lock-text" id="caps-usuario" style="display:none">Bloq Mayus activado</span>
                         <small>confirma la contraseña antes de guardar</small>
                     </div>
                 </div>
