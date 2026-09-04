@@ -86,36 +86,12 @@ if ($rolActivo) {
                     </div>
                 </div>
                 <p class="login-forgot">
-                    <span class="caps-lock-aviso" id="caps-login" style="display:none">&#8682; Bloq Mayus activado</span>
-                    <a href="#" id="link-olvide" onclick="mostrarOlvido(); return false;">Olvidaste tu contraseña?</a>
+                    <span class="caps-lock-aviso" id="caps-login" style="display:none">Bloq Mayus activado</span>
                 </p>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-outline" onclick="cerrarLogin()">Volver</button>
                 <button class="btn btn-primary" id="btn-login" onclick="enviarLogin()">Ingresar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal: Olvidaste tu contrasena -->
-    <div class="modal-overlay" id="modal-olvido">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Olvidaste tu contraseña?</h3>
-                <button class="modal-close" onclick="cerrarOlvido()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <p>
-                    Las credenciales de las dependencias las asigna el <strong>administrador del software</strong>.
-                    No existe registro por cuenta propia.
-                </p>
-                <p style="margin-top:10px;">
-                    Para restablecer su contraseña, solicitelo de manera <strong>presencial en el CEAD</strong>.
-                    El administrador se la restablecera.
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" onclick="cerrarOlvido()">Entendido</button>
             </div>
         </div>
     </div>

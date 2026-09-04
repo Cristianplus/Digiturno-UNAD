@@ -96,8 +96,6 @@ async function seleccionarPerfil(perfil) {
     document.getElementById('login-usuario').value = '';
     document.getElementById('login-password').value = '';
     limpiarErrorLogin();
-    document.getElementById('link-olvide').style.display =
-        perfil === 'dependencia' ? '' : 'none';
     document.getElementById('modal-login').classList.add('active');
     setTimeout(() => document.getElementById('login-usuario').focus(), 100);
 }
@@ -134,16 +132,6 @@ async function enviarLogin() {
         btn.disabled = false;
         btn.textContent = 'Ingresar';
     }
-}
-
-// Olvidaste tu contrasena: aviso de gestion presencial
-function mostrarOlvido() {
-    cerrarLogin();
-    document.getElementById('modal-olvido').classList.add('active');
-}
-
-function cerrarOlvido() {
-    document.getElementById('modal-olvido').classList.remove('active');
 }
 
 function cerrarLogin() {

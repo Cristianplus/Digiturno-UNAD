@@ -108,8 +108,8 @@ El sistema tiene **3 perfiles** seleccionables desde `login.php` (estilo Netflix
 2. **Dependencias**: pide usuario y contrasena asignados por el administrador. Solo ve
    los turnos de **su dependencia** (la configurada en su usuario). No tiene opciones de
    configuracion, gestion de usuarios ni edicion de su propio perfil.
-   - Si olvido la contrasena, debe solicitarla **presencialmente en el CEAD** al
-     administrador (no hay recuperacion por cuenta propia).
+   - No hay recuperacion de contrasena desde el login: debe solicitarla
+     **presencialmente en el CEAD** al administrador.
 3. **Administrador**: acceso a todos los modulos (Recepcion, Pantalla, Dependencias) y a
    **Configuracion**, donde crea, edita, desactiva y elimina los usuarios de las
    dependencias, y puede cambiar su propia contrasena.

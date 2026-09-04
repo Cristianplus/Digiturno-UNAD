@@ -1394,23 +1394,11 @@ table tbody tr:nth-child(even):hover {
     gap: 8px;
 }
 
-/* Texto de aviso de Bloq Mayus (rojo, sin caja) junto a "Olvidaste tu contraseña?" */
+/* Texto de aviso de Bloq Mayus (rojo, sin caja) */
 .login-forgot .caps-lock-aviso {
     color: #dc2626;
     font-size: 0.82rem;
     font-weight: 500;
-}
-
-.login-forgot a {
-    margin-left: auto;
-    color: var(--unad-blue-light);
-    text-decoration: none;
-    font-size: 0.88rem;
-}
-
-.login-forgot a:hover {
-    text-decoration: underline;
-    color: var(--unad-blue);
 }
 
 @media (max-width: 600px) {
