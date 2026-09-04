@@ -465,6 +465,18 @@ function renderHistorial(atendidos) {
 
 // === ACCIONES ===
 
+// Reproducir el sonido de aviso al llamar un turno.
+// Se crea un Audio nuevo por llamada para permitir sonidos superpuestos.
+let sonidoTurno = null;
+function reproducirSonidoTurno() {
+    if (!sonidoTurno) {
+        sonidoTurno = new Audio('assets/audio/sonido_turno.mp3');
+    } else {
+        sonidoTurno.currentTime = 0;
+    }
+    sonidoTurno.play().catch(() => {});
+}
+
 // Llamar un turno
 async function llamarTurno(turnoId, boton) {
     try {
@@ -477,6 +489,7 @@ async function llamarTurno(turnoId, boton) {
 
         if (data.success) {
             mostrarToast('Turno llamado', 'success');
+            reproducirSonidoTurno();
             refrescarTurnos();
         } else {
             mostrarToast(data.message, 'error');
