@@ -18,6 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // al re-render de los turnos (0.5s) y el clic nunca se pierde.
     document.getElementById('lista-pendientes').addEventListener('click', onListaPendientesClick);
 
+    // Al hacer clic en "Dependencia" de la barra, volver al listado de dependencias
+    // si ya se esta dentro de un panel de gestion (solo admin).
+    const btnVolver = document.getElementById('volver-dependencias');
+    if (btnVolver) {
+        btnVolver.addEventListener('click', volverAlListado);
+    }
+
     // Rol dependencia: la dependencia viene fija del perfil del usuario (admin la asigna).
     if (typeof DEP_FIJA !== 'undefined' && DEP_FIJA !== null && DEP_FIJA !== '') {
         ingresarDependenciaFija(DEP_FIJA, DEP_FIJA_NOMBRE || 'Dependencia');
@@ -293,6 +300,42 @@ function ingresarAlPanel(dependencia, escuela) {
 
     refrescarTurnos();
     refreshTimer = setInterval(refrescarTurnos, REFRESH_INTERVAL);
+}
+
+// Volver desde un panel de gestion al listado completo de dependencias (solo admin).
+// Se dispara al hacer clic en el enlace "Dependencia" de la barra superior.
+function volverAlListado(e) {
+    // Rol dependencia (DEP_FIJA): no hay selector al que volver.
+    if (typeof DEP_FIJA !== 'undefined' && DEP_FIJA) return;
+
+    const panel = document.getElementById('panel-gestion');
+    // Si aun no se esta en un panel, dejar que el enlace recargue la pagina normalmente.
+    if (!panel || panel.classList.contains('hidden')) return;
+
+    e.preventDefault();
+
+    // Limpiar la dependencia guardada para que no se restaure tras la vista.
+    sessionStorage.removeItem('dependencia_id');
+    dependenciaActual = null;
+
+    // Detener el refresco del panel de gestion.
+    if (refreshTimer) { clearInterval(refreshTimer); refreshTimer = null; }
+
+    // Regresar al selector de dependencias.
+    panel.classList.add('hidden');
+    document.getElementById('card-seleccion').classList.remove('hidden');
+
+    // Si se estaba en la vista de escuelas de ESC, volver al grid de dependencias.
+    const bloqueEsc = document.getElementById('escuelas-block');
+    if (bloqueEsc && !bloqueEsc.classList.contains('hidden')) {
+        bloqueEsc.classList.add('hidden');
+        document.querySelector('.selector-hint').classList.remove('hidden');
+    }
+    const gridDeps = document.getElementById('deps-grid');
+    if (gridDeps) gridDeps.classList.remove('hidden');
+
+    // Recargar el listado (y reactivar el refresco del conteo de espera).
+    cargarDependencias();
 }
 
 // Refrescar turnos de la dependencia

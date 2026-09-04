@@ -39,7 +39,7 @@ if ($esDependencia) {
                 <?php if ($esAdmin): ?>
                 <a href="index.php">Recepcion</a>
                 <a href="pantalla.php" target="_blank">Pantalla</a>
-                <a href="dependencia.php" class="active">Dependencia</a>
+                <a href="dependencia.php" class="active" id="volver-dependencias">Dependencia</a>
                 <a href="configuracion.php">Configuracion</a>
                 <?php endif; ?>
                 <a href="api/logout.php" title="Cerrar sesion">Salir</a>
